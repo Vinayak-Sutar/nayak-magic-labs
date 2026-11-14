@@ -1,0 +1,236 @@
+---
+import Mark from './Mark.astro';
+import { NAV, SITE } from '../site.config';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || path.startsWith(href);
+---
+
+<header class="site-header" data-header>
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label={`${SITE.name}, home`}>
+      <Mark size={32} blink />
+      <span class="brand__name">{SITE.name}</span>
+    </a>
+
+    <nav class="nav" id="site-nav" aria-label="Main">
+      {
+        NAV.map((item) => (
+          <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="tools">
+      <button class="search" type="button" data-prompt-open aria-haspopup="dialog" aria-label="Search the site">
+        <span class="search__chev" aria-hidden="true">›</span>
+        <span class="search__label">Search</span>
+        <kbd class="search__key" aria-hidden="true">/</kbd>
+      </button>
+
+      <button class="icon" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+          <path d="M8 1.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"></path>
+        </svg>
+      </button>
+
+      <button
+        class="icon menu"
+        type="button"
+        data-menu-toggle
+        aria-expanded="false"
+        aria-controls="site-nav"
+        aria-label="Menu"
+      >
+        <span class="menu__bars" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--rule);
+    view-transition-name: site-header;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 10px 24px;
+    min-height: 60px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand__name {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .nav {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+  }
+  .nav a {
+    padding: 8px 12px;
+    border-radius: var(--r-pill);
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+  }
+  .nav a:hover,
+  .nav a[aria-current='page'] {
+    background: var(--panel);
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-pill);
+    padding: 0 8px 0 12px;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: border-color 0.2s;
+  }
+  .search:hover {
+    border-color: var(--ink);
+  }
+  .search__chev {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .search__key {
+    background: var(--panel);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .icon {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    transition: border-color 0.2s;
+  }
+  .icon:hover {
+    border-color: var(--ink);
+  }
+
+  .menu {
+    display: none;
+  }
+  .menu__bars {
+    display: grid;
+    gap: 5px;
+  }
+  .menu__bars i {
+    display: block;
+    width: 14px;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform 0.25s var(--ease);
+  }
+  .site-header[data-open] .menu__bars i:first-child {
+    transform: translateY(3.25px) rotate(45deg);
+  }
+  .site-header[data-open] .menu__bars i:last-child {
+    transform: translateY(-3.25px) rotate(-45deg);
+  }
+
+  @media (max-width: 880px) {
+    .tools {
+      margin-left: auto;
+    }
+    .menu {
+      display: grid;
+    }
+    .search__key {
+      display: none;
+    }
+    .search {
+      padding: 0 14px 0 12px;
+    }
+
+    .nav {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      flex-direction: column;
+      gap: 0;
+      margin: 0;
+      padding: 4px var(--gutter) 18px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+    }
+    .site-header[data-open] .nav {
+      display: flex;
+    }
+    .nav a {
+      padding: 15px 2px;
+      border-radius: 0;
+      border-bottom: 1px solid var(--rule-2);
+      font-family: var(--font-display);
+      font-stretch: 112%;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .nav a:hover,
+    .nav a[aria-current='page'] {
+      background: transparent;
+      color: var(--accent);
+    }
+  }
+
+  @media (max-width: 460px) {
+    .search__label {
+      display: none;
+    }
+    .search {
+      width: 36px;
+      padding: 0;
+      justify-content: center;
+    }
+    .search__chev::after {
+      content: '_';
+    }
+  }
+</style>

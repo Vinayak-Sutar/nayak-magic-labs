@@ -1,0 +1,20 @@
+---
+import BlogList from '../../components/BlogList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts } from '../../lib/content';
+import { breadcrumbs } from '../../lib/schema';
+
+const posts = await getPosts();
+const tags = [...new Set(posts.map((post) => post.data.tag))];
+---
+
+<BaseLayout
+  title="Blog"
+  description="Notes from Nayak Magic Labs on building and shipping software: desktop apps, Chrome extensions, local AI models and the release work around them."
+  jsonLd={breadcrumbs([
+    { name: 'Home', path: '/' },
+    { name: 'Blog', path: '/blog/' },
+  ])}
+>
+  <BlogList posts={posts} tags={tags} />
+</BaseLayout>

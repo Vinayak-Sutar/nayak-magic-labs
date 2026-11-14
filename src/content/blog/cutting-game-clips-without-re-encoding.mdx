@@ -1,0 +1,34 @@
+---
+title: Cutting game clips without re-encoding
+description: 'How Valocut exports in seconds: a keyframe-aware FFmpeg pipeline that copies the middle of a clip and re-encodes only the edges.'
+date: 2026-10-14
+tag: Engineering
+app: valocut
+---
+
+The slow part of most clip editors isn’t finding the moment. It’s the export. Re-encoding a clip means decoding and compressing every frame in it, and doing that again for every clip in a montage. On a laptop, it adds up quickly.
+
+Valocut avoids most of that work. Its export pipeline stream-copies instead of re-encoding, so export time tracks the number of cuts rather than the length of the video.
+
+## The keyframe problem
+
+Stream copy has one catch: you can only copy from one keyframe to another. Cut at an arbitrary frame and the player has nothing to decode from until the next keyframe arrives.
+
+An honest smart cut handles this in three pieces. Re-encode the short fragment from the in-point to the first keyframe, copy everything between keyframes untouched, then re-encode the fragment from the last keyframe to the out-point.
+
+```bash
+# 1. head: in-point → first keyframe   (re-encode)
+# 2. body: keyframe → keyframe          (stream copy)
+ffmpeg -ss $K1 -to $K2 -i match.mp4 -c copy body.mp4
+# 3. tail: last keyframe → out-point    (re-encode)
+```
+
+## No dropped frames, no drift
+
+The edges are where it goes wrong. The re-encoded fragments have to match the source’s codec parameters, or the joins stutter. Audio has to be cut on the same boundaries as video, or it drifts out of sync across a long montage. Getting both seamless was most of the export work.
+
+> Export time tracks the number of cuts, not the length of the video.
+
+## One model, very different machines
+
+Detection runs a YOLOX model exported to ONNX: GPU-accelerated where there is a GPU, on a plain CPU where there isn’t. Tuning batch sizes and frame sampling lets a laptop finish a scan in reasonable time while a GPU machine gets the speed it deserves.

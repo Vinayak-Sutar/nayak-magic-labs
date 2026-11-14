@@ -1,0 +1,36 @@
+---
+import LegalLayout from '../../layouts/LegalLayout.astro';
+import { SITE } from '../../site.config';
+---
+
+<LegalLayout title="Terms of use" description="Terms for using Nayak Magic Labs apps, open-source projects and this website.">
+  <section>
+    <h2>Using the apps</h2>
+    <p>
+      The apps are provided as they are. Free apps may change or be discontinued; paid features, when there are any,
+      will say clearly what you are paying for.
+    </p>
+  </section>
+
+  <section>
+    <h2>Open-source projects</h2>
+    <p>Apps with public source code are covered by the license in their repository, such as MIT for LeetViz.</p>
+  </section>
+
+  <section>
+    <h2>Client work</h2>
+    <p>Commissioned projects are covered by the contract for that project, not by these terms.</p>
+  </section>
+
+  <section>
+    <h2>Publisher</h2>
+    <p>{SITE.name}, an indie software publisher.</p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p>
+      General questions go to <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+    </p>
+  </section>
+</LegalLayout>

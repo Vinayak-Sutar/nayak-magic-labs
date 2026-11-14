@@ -1,0 +1,131 @@
+---
+/** Shared frame for the privacy overview, each app's privacy policy and the terms. */
+import { appPrivacyUrl, formatDate, getApps } from '../lib/content';
+import { SITE } from '../site.config';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const apps = await getApps();
+const path = Astro.url.pathname;
+const updated = formatDate(new Date(SITE.legalUpdated));
+
+const nav = [
+  { label: 'Privacy overview', href: '/legal/privacy/' },
+  ...apps.map((app) => ({ label: app.data.name, href: appPrivacyUrl(app.id) })),
+  { label: 'Terms of use', href: '/legal/terms/' },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="wrap legal">
+    <nav class="legal__nav" aria-label="Legal documents">
+      <p class="mono muted legal__label">Legal</p>
+      <ul role="list">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <article class="legal__doc">
+      <h1 class="display legal__title">{title}</h1>
+      <p class="muted legal__date">Last updated {updated}</p>
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px clamp(32px, 5vw, 80px);
+    align-items: flex-start;
+    padding-top: clamp(40px, 6vw, 80px);
+  }
+
+  .legal__nav {
+    flex: 0 1 240px;
+    min-width: 200px;
+    position: sticky;
+    top: calc(var(--header-h) + 28px);
+  }
+  .legal__label {
+    margin-bottom: 12px;
+  }
+  .legal__nav ul {
+    border-top: 1px solid var(--ink);
+  }
+  .legal__nav a {
+    display: block;
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 15px;
+    transition: background-color 0.2s;
+  }
+  .legal__nav a:hover {
+    background: var(--panel);
+  }
+  .legal__nav a[aria-current='page'] {
+    background: var(--panel);
+    font-weight: 600;
+  }
+
+  .legal__doc {
+    flex: 1 1 520px;
+    min-width: 0;
+    max-width: 800px;
+  }
+  .legal__title {
+    font-size: clamp(34px, 4.4vw, 60px);
+    line-height: 0.98;
+  }
+  .legal__date {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .legal__doc :global(section) {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+  }
+  .legal__doc :global(section:first-of-type) {
+    margin-top: 32px;
+  }
+  .legal__doc :global(h2) {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .legal__doc :global(section p) {
+    margin-top: 6px;
+    font-size: 16.5px;
+    line-height: 1.65;
+    color: var(--body);
+    text-wrap: pretty;
+  }
+  .legal__doc :global(section a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 820px) {
+    .legal__nav {
+      position: static;
+      flex-basis: 100%;
+    }
+  }
+</style>

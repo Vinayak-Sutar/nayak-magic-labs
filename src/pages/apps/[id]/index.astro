@@ -1,0 +1,526 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import AppIcon from '../../../components/AppIcon.astro';
+import Ledger from '../../../components/Ledger.astro';
+import PostRow from '../../../components/PostRow.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { appPrivacyUrl, appUrl, getApps, getPosts, tracked, type App } from '../../../lib/content';
+import { breadcrumbs, faqPage, softwareApplication } from '../../../lib/schema';
+import { SITE } from '../../../site.config';
+
+export async function getStaticPaths() {
+  const apps = await getApps();
+  return apps.map((app, index) => ({
+    params: { id: app.id },
+    props: { app, next: apps[(index + 1) % apps.length] },
+  }));
+}
+
+interface Props {
+  app: App;
+  next: App;
+}
+
+const { app, next } = Astro.props;
+const { data } = app;
+const { Content } = await render(app);
+const posts = (await getPosts()).filter((post) => post.data.app?.id === app.id);
+const number = (index: number) => String(index + 1).padStart(2, '0');
+---
+
+<BaseLayout
+  fullTitle={`${data.seoTitle} | ${SITE.name}`}
+  description={data.seoDescription}
+  image={app.id === 'valocut' ? '/og-valocut.jpg' : undefined}
+  jsonLd={[
+    softwareApplication(app),
+    breadcrumbs([
+      { name: 'Home', path: '/' },
+      { name: 'Apps', path: '/apps/' },
+      { name: data.name, path: appUrl(app.id) },
+    ]),
+    faqPage(data.faqs),
+  ]}
+>
+  <article>
+    <header class="wrap hero">
+      <nav class="crumbs mono" aria-label="Breadcrumb">
+        <a href="/apps/">Apps</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{data.name}</span>
+      </nav>
+
+      <div class:list={['hero__grid', { 'hero__grid--media': data.poster }]}>
+        <div class="hero__main">
+          <div class="hero__top">
+            <AppIcon name={data.icon} size={56} />
+            <span class="status" data-status={data.status}>{data.status} · {data.platformLabel}</span>
+          </div>
+
+          <h1 class="display hero__name" style={`view-transition-name:app-${app.id}`}>{data.name}</h1>
+          <p class="hero__tagline">{data.tagline}</p>
+          <p class="hero__line">{data.oneLiner}</p>
+
+          <div class="hero__btns">
+            {
+              data.comingSoon && (
+                <span class="btn" aria-disabled="true">
+                  {data.comingSoon}
+                </span>
+              )
+            }
+            {
+              data.links.map((link, index) => (
+                <a
+                  class:list={['btn', index === 0 ? (data.comingSoon ? 'btn--solid' : 'btn--accent') : 'btn--ghost']}
+                  href={tracked(link.href, 'app-page')}
+                  rel="noopener"
+                >
+                  {link.label} ↗
+                </a>
+              ))
+            }
+          </div>
+        </div>
+
+        {
+          data.poster && (
+            <figure class="hero__media">
+              <Image
+                src={data.poster}
+                alt={data.posterAlt ?? ''}
+                widths={[480, 720, 960]}
+                sizes="(max-width: 960px) 92vw, 620px"
+                loading="eager"
+              />
+            </figure>
+          )
+        }
+      </div>
+
+      <dl class="specs">
+        {
+          data.specs.map((spec) => (
+            <div>
+              <dt>{spec.k}</dt>
+              <dd>{spec.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </header>
+
+    <section class="wrap section why">
+      <div class="why__quote" data-reveal>
+        <h2 class="mono muted">Why it exists</h2>
+        <blockquote class="display">
+          <span class="chev" aria-hidden="true">›</span>
+          <p>{data.quote}</p>
+        </blockquote>
+      </div>
+      <p class="why__text" data-reveal style="--i:1">{data.problem}</p>
+    </section>
+
+    <section class="wrap section">
+      <h2 class="display h-section" data-reveal>What it does</h2>
+      <div class="features">
+        {
+          data.features.map((feature, index) => (
+            <div class="feature" data-reveal style={`--i:${index % 2}`}>
+              <span class="mono feature__n">{number(index)}</span>
+              <h3 class="h-sub">{feature.title}</h3>
+              <p>{feature.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="band built">
+      <div class="wrap">
+        <div class="built__head">
+          <h2 class="display h-section" data-reveal>How it’s built</h2>
+          {data.buildIntro && <p class="built__intro">{data.buildIntro}</p>}
+        </div>
+
+        <ol class="steps" role="list">
+          {
+            data.build.map((step, index) => (
+              <li data-reveal style={`--i:${index}`}>
+                <span class="mono steps__n">{number(index)}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))
+          }
+        </ol>
+
+        <ul class="stack" role="list" aria-label="Built with">
+          {data.stack.map((tech) => <li class="tag">{tech}</li>)}
+        </ul>
+
+        <div class="hard">
+          <h3 class="h-sub">The hard parts</h3>
+          <div class="prose hard__text">
+            <Content />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap section privacy">
+      <div class="privacy__text">
+        <h2 class="display h-section" data-reveal>Privacy</h2>
+        <p class="lede">{data.privacy}</p>
+        <a class="link" href={appPrivacyUrl(app.id)}>{data.name} privacy policy</a>
+      </div>
+      <div class="privacy__ledger" data-reveal>
+        <Ledger ledger={data.ledger} />
+      </div>
+    </section>
+
+    <section class="wrap section more">
+      <div class="more__next">
+        <h2 class="h-sub">What’s next</h2>
+        <p>{data.next}</p>
+      </div>
+      <div class="more__faq">
+        <h2 class="h-sub">Questions</h2>
+        <div class="faq">
+          {
+            data.faqs.map((faq) => (
+              <details>
+                <summary>{faq.q}</summary>
+                <p>{faq.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    {
+      posts.length > 0 && (
+        <section class="wrap section">
+          <div class="section-head">
+            <h2 class="display h-section">From the blog</h2>
+            <a class="link" href="/blog/">
+              All posts
+            </a>
+          </div>
+          <div class="rows">
+            {posts.map((post) => (
+              <PostRow post={post} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <nav class="wrap section" aria-label="More apps">
+      <a class="next" href={appUrl(next.id)}>
+        <span class="muted">Next app</span>
+        <span class="display next__name">{next.data.name} →</span>
+        <span class="next__tagline muted">{next.data.tagline}</span>
+      </a>
+    </nav>
+  </article>
+</BaseLayout>
+
+<style>
+  /* ── Hero ── */
+  .hero {
+    padding-top: clamp(28px, 4vw, 48px);
+  }
+  .crumbs {
+    display: flex;
+    gap: 10px;
+    color: var(--muted);
+  }
+  .crumbs a {
+    transition: color 0.2s;
+  }
+  .crumbs a:hover {
+    color: var(--accent);
+  }
+  .crumbs [aria-current] {
+    color: var(--ink);
+  }
+
+  .hero__grid {
+    margin-top: clamp(28px, 4vw, 48px);
+  }
+  .hero__grid--media {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    gap: clamp(28px, 4vw, 64px);
+    align-items: center;
+  }
+  .hero__main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+  .hero__top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: clamp(20px, 2.6vw, 32px);
+  }
+  .hero__name {
+    font-size: clamp(52px, 9vw, 132px);
+    letter-spacing: -0.055em;
+    line-height: 0.86;
+  }
+  .hero__grid--media .hero__name {
+    font-size: clamp(52px, 7.4vw, 108px);
+  }
+  .hero__tagline {
+    margin-top: clamp(18px, 2.2vw, 28px);
+    max-width: 22em;
+    font-size: clamp(21px, 2.3vw, 30px);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .hero__line {
+    margin-top: 12px;
+    max-width: 34em;
+    font-size: 17.5px;
+    color: var(--body);
+    text-wrap: pretty;
+  }
+  .hero__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .hero__media {
+    min-width: 0;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    border: 1px solid var(--ink);
+    background: #000;
+  }
+  .hero__media img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin: clamp(36px, 5vw, 64px) 0 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .specs div {
+    padding: 16px 20px 16px 0;
+  }
+  .specs dt {
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .specs dd {
+    margin-top: 2px;
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Why it exists ── */
+  .why {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 32px clamp(40px, 6vw, 96px);
+    align-items: end;
+  }
+  .why blockquote {
+    display: flex;
+    gap: 0.4em;
+    margin-top: 18px;
+    font-size: clamp(28px, 3.6vw, 52px);
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+  }
+  .why__text {
+    font-size: clamp(17px, 1.5vw, 19px);
+    line-height: 1.65;
+    color: var(--body);
+    text-wrap: pretty;
+  }
+
+  /* ── Features ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 clamp(32px, 5vw, 72px);
+    margin-top: clamp(24px, 3vw, 36px);
+    border-bottom: 1px solid var(--ink);
+  }
+  .feature {
+    padding: 22px 0 26px;
+    border-top: 1px solid var(--ink);
+  }
+  .feature__n {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--accent);
+  }
+  .feature p {
+    margin-top: 8px;
+    max-width: 34em;
+    font-size: 16.5px;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  /* ── How it's built ── */
+  .built {
+    margin-top: var(--section);
+    padding: clamp(64px, 8vw, 110px) 0;
+  }
+  .built__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px clamp(40px, 6vw, 96px);
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .built__intro {
+    flex: 0 1 560px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--faint);
+    text-wrap: pretty;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: 0 clamp(20px, 2.6vw, 36px);
+    margin: clamp(32px, 4vw, 48px) 0 0;
+    padding: 0;
+  }
+  .steps li {
+    padding: 18px 0 26px;
+    border-top: 1px solid var(--band-rule);
+  }
+  .steps__n {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--glow);
+  }
+  .steps h3 {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.03em;
+  }
+  .steps p {
+    margin-top: 8px;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--faint);
+    text-wrap: pretty;
+  }
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 0;
+  }
+  .hard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 20px clamp(32px, 5vw, 80px);
+    margin-top: clamp(48px, 6vw, 80px);
+    padding-top: 26px;
+    border-top: 1px solid var(--band-rule);
+  }
+  .hard__text {
+    max-width: 44em;
+    font-size: 17.5px;
+    line-height: 1.65;
+  }
+
+  /* ── Privacy ── */
+  .privacy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+  .privacy__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  /* ── What's next + questions ── */
+  .more {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 40px clamp(40px, 6vw, 96px);
+    align-items: start;
+  }
+  .more__next p {
+    margin-top: 14px;
+    max-width: 30em;
+    color: var(--body);
+    text-wrap: pretty;
+  }
+  .more__faq .faq {
+    margin-top: 14px;
+  }
+
+  /* ── Next app ── */
+  .next {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 28px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    font-size: 14.5px;
+    transition: color 0.2s;
+  }
+  .next:hover {
+    color: var(--accent);
+  }
+  .next__name {
+    font-size: clamp(30px, 4vw, 56px);
+    line-height: 1;
+  }
+  .next__tagline {
+    font-size: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .hero__grid--media,
+    .why,
+    .privacy,
+    .more,
+    .hard {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .why {
+      align-items: start;
+    }
+  }
+  @media (max-width: 640px) {
+    .features {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

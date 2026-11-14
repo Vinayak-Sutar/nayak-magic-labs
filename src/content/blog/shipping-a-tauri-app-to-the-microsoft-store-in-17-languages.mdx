@@ -1,0 +1,17 @@
+---
+title: Shipping a Tauri app to the Microsoft Store in 17 languages
+description: 'Packaging, the store listing, localization and crash reporting: what it took to turn a working build into a public release.'
+date: 2026-10-02
+tag: Publishing
+app: valocut
+---
+
+A working build is maybe half of a release. The rest is packaging, a store listing that explains the app in a few seconds, translations, and a way to find out what breaks on machines you will never see.
+
+## The shape of the app
+
+Valocut is a Tauri shell around a Next.js interface, with a local FastAPI sidecar doing the heavy work. Nothing leaves the machine, so the architecture is designed around making a desktop CPU feel fast rather than around scaling a server.
+
+## After launch
+
+Sentry reports crashes and PostHog shows which features people actually use. Both shape what gets built next more than any roadmap does.

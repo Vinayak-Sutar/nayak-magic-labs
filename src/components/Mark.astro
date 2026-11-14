@@ -1,0 +1,73 @@
+---
+/**
+ * The › nml_ mark in its rounded tile.
+ * tone="ink": ink tile, for bone backgrounds. tone="paper": the reverse, for bands.
+ */
+import { MARK } from '../lib/mark';
+
+interface Props {
+  size?: number;
+  tone?: 'ink' | 'paper';
+  blink?: boolean;
+}
+
+const { size = 32, tone = 'ink', blink = false } = Astro.props;
+const c = MARK.cursor;
+---
+
+<svg
+  class:list={['mark', `mark--${tone}`, { 'mark--blink': blink }]}
+  width={size}
+  height={size}
+  viewBox="0 0 64 64"
+  aria-hidden="true"
+  focusable="false"
+>
+  <rect class="mark__tile" width="64" height="64" rx="14"></rect>
+  <g transform="translate(8 25.71) scale(0.014488)">
+    <path class="mark__hot" d={MARK.chevron}></path>
+    <path class="mark__ltr" d={MARK.n}></path>
+    <path class="mark__ltr" d={MARK.m}></path>
+    <path class="mark__ltr" d={MARK.l}></path>
+    <rect class="mark__hot mark__cursor" x={c.x} y={c.y} width={c.width} height={c.height}></rect>
+  </g>
+</svg>
+
+<style>
+  .mark {
+    flex: none;
+    display: block;
+  }
+  .mark path {
+    stroke-width: 18;
+    stroke-linejoin: round;
+  }
+
+  .mark--ink .mark__tile {
+    fill: var(--ink);
+  }
+  .mark--ink .mark__ltr {
+    fill: var(--paper);
+    stroke: var(--paper);
+  }
+  .mark--ink .mark__hot {
+    fill: var(--glow);
+    stroke: var(--glow);
+  }
+
+  .mark--paper .mark__tile {
+    fill: var(--paper);
+  }
+  .mark--paper .mark__ltr {
+    fill: var(--ink);
+    stroke: var(--ink);
+  }
+  .mark--paper .mark__hot {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+
+  .mark--blink .mark__cursor {
+    animation: blink 1s steps(1) 1.1s infinite;
+  }
+</style>

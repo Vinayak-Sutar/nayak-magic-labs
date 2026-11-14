@@ -1,0 +1,275 @@
+---
+import AppIcon from '../components/AppIcon.astro';
+import Mark from '../components/Mark.astro';
+import { MARK_PARTS, RULES } from '../data/studio';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { appUrl, getApps } from '../lib/content';
+import { breadcrumbs, organization } from '../lib/schema';
+
+const apps = await getApps();
+const flagship = apps.find((app) => app.data.featured) ?? apps[0];
+const languages = flagship.data.specs.find((spec) => spec.k === 'Languages')?.v ?? '17';
+
+const facts = [
+  { n: String(apps.length), t: 'apps, each built and published here' },
+  { n: '3', t: 'platforms they run on: Windows, Chrome and the web' },
+  { n: languages, t: `languages ${flagship.data.name} launched in` },
+];
+
+// Toolbox: every technology across the apps, most used first.
+const usage = new Map<string, number>();
+for (const app of apps) for (const tech of app.data.stack) usage.set(tech, (usage.get(tech) ?? 0) + 1);
+const techs = [...usage].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+---
+
+<BaseLayout
+  title="About"
+  description="Nayak Magic Labs is an indie software publisher that designs, builds and publishes its own browser extensions, Windows apps and web tools."
+  jsonLd={[
+    organization(),
+    breadcrumbs([
+      { name: 'Home', path: '/' },
+      { name: 'About', path: '/about/' },
+    ]),
+  ]}
+>
+  <section class="wrap head">
+    <h1 class="display h-statement">An indie software publisher that makes and ships its own apps.</h1>
+    <p class="lede">
+      Nayak Magic Labs designs, builds and publishes browser extensions, Windows apps and web tools. Every app on this
+      site was made here, and so was everything that happens after the code: store listings, translations, crash
+      reporting and support.
+    </p>
+
+    <dl class="facts">
+      {
+        facts.map((fact, index) => (
+          <div data-reveal style={`--i:${index}`}>
+            <dt class="display">{fact.n}</dt>
+            <dd>{fact.t}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="wrap section">
+    <div class="band mark-panel" data-reveal>
+      <div class="mark-panel__art">
+        <Mark size={220} tone="paper" blink />
+      </div>
+      <div class="mark-panel__text">
+        <h2 class="display h-title">The mark</h2>
+        <dl>
+          {
+            MARK_PARTS.map((part) => (
+              <div>
+                <dt class:list={{ hot: part.hot }}>{part.glyph}</dt>
+                <dd>{part.body}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section">
+    <h2 class="display h-section" data-reveal>House rules</h2>
+    <div class="rules">
+      {
+        RULES.map((rule, index) => (
+          <div data-reveal style={`--i:${index}`}>
+            <h3 class="h-sub">{rule.title}</h3>
+            <p>{rule.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrap section" data-toolbox>
+    <div class="section-head">
+      <h2 class="display h-section" data-reveal>Toolbox</h2>
+      <p class="muted toolbox__hint">The tools behind the apps. Pick one to see which apps use it.</p>
+    </div>
+
+    <div class="toolbox__techs" role="group" aria-label="Technologies">
+      {
+        techs.map(([tech, count]) => (
+          <button class="chip" type="button" data-tech={tech} aria-pressed="false">
+            {tech}
+            <small>{count}</small>
+          </button>
+        ))
+      }
+    </div>
+
+    <ul class="toolbox__apps" role="list">
+      {
+        apps.map((app) => (
+          <li>
+            <a href={appUrl(app.id)} data-stack={app.data.stack.join('|')}>
+              <AppIcon name={app.data.icon} size={40} />
+              <span>{app.data.name}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-toolbox]');
+  if (box) {
+    const chips = box.querySelectorAll<HTMLButtonElement>('[data-tech]');
+    const apps = box.querySelectorAll<HTMLElement>('[data-stack]');
+    let current = '';
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        current = current === chip.dataset.tech ? '' : (chip.dataset.tech ?? '');
+        chips.forEach((other) => other.setAttribute('aria-pressed', String(other.dataset.tech === current)));
+        apps.forEach((app) => {
+          const uses = !current || (app.dataset.stack ?? '').split('|').includes(current);
+          app.toggleAttribute('data-dim', !uses);
+        });
+      });
+    });
+  }
+</script>
+
+<style>
+  .head {
+    padding-top: clamp(48px, 7vw, 96px);
+  }
+  .head h1 {
+    max-width: 1100px;
+  }
+  .head .lede {
+    margin-top: 28px;
+    max-width: 700px;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 0 24px;
+    margin: clamp(40px, 5vw, 64px) 0 0;
+    border-top: 1px solid var(--ink);
+  }
+  .facts div {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .facts dt {
+    font-size: clamp(48px, 5vw, 72px);
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+  .facts dd {
+    margin-top: 6px;
+    font-size: 15.5px;
+    color: var(--muted);
+  }
+
+  .mark-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px clamp(40px, 6vw, 96px);
+    align-items: center;
+    padding: clamp(28px, 4vw, 56px);
+    border-radius: var(--r-lg);
+  }
+  .mark-panel__art {
+    flex: 0 1 220px;
+  }
+  .mark-panel__art :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+  .mark-panel__text {
+    flex: 1 1 420px;
+    min-width: 0;
+  }
+  .mark-panel dl {
+    margin: 20px 0 0;
+  }
+  .mark-panel dl div {
+    display: flex;
+    gap: 20px;
+    padding: 16px 0;
+    border-top: 1px solid var(--band-rule);
+  }
+  .mark-panel dt {
+    flex: 0 0 56px;
+    font-family: var(--font-mono);
+    font-size: 22px;
+  }
+  .mark-panel dt.hot {
+    color: var(--glow);
+  }
+  .mark-panel dd {
+    font-size: 16.5px;
+    line-height: 1.55;
+  }
+
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: clamp(24px, 3vw, 40px);
+    margin-top: clamp(28px, 3.6vw, 44px);
+  }
+  .rules div {
+    padding-top: 18px;
+    border-top: 1px solid var(--ink);
+  }
+  .rules p {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .toolbox__hint {
+    max-width: 420px;
+    font-size: 16px;
+  }
+  .toolbox__techs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .toolbox__techs .chip {
+    padding: 7px 13px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .toolbox__apps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .toolbox__apps a {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    font-size: 15px;
+    font-weight: 600;
+    transition:
+      opacity 0.25s,
+      border-color 0.2s;
+  }
+  .toolbox__apps a:hover {
+    border-color: var(--ink);
+  }
+  .toolbox__apps a[data-dim] {
+    opacity: 0.22;
+  }
+</style>

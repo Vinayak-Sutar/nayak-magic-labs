@@ -1,0 +1,62 @@
+---
+/**
+ * One privacy policy per app, written from the app's own "ledger" data.
+ * Store listings link to these pages.
+ */
+import LegalLayout from '../../../layouts/LegalLayout.astro';
+import { appUrl, getApps, type App } from '../../../lib/content';
+import { SITE } from '../../../site.config';
+
+export async function getStaticPaths() {
+  const apps = await getApps();
+  return apps.map((app) => ({ params: { id: app.id }, props: { app } }));
+}
+
+interface Props {
+  app: App;
+}
+
+const { app } = Astro.props;
+const { data } = app;
+const { ledger } = data;
+
+const sections = [
+  { h: 'What the app does', p: data.oneLiner },
+  { h: 'Where it runs', p: `${ledger.runs}.` },
+  { h: 'What it sends', p: ledger.sends },
+  { h: 'Accounts', p: ledger.account === 'None' ? 'The app has no accounts.' : `${ledger.account}.` },
+  { h: 'In practice', p: data.privacy },
+];
+
+if (data.platform === 'chrome') {
+  sections.push({
+    h: 'Chrome Web Store',
+    p: 'The use of information received from Google APIs will adhere to the Chrome Web Store User Data Policy, including the Limited Use requirements.',
+  });
+}
+---
+
+<LegalLayout
+  title={`${data.name} privacy policy`}
+  description={`Privacy policy for ${data.name}: where it runs, what it sends and whether it needs an account.`}
+>
+  {
+    sections.map((section) => (
+      <section>
+        <h2>{section.h}</h2>
+        <p>{section.p}</p>
+      </section>
+    ))
+  }
+  <section>
+    <h2>Contact</h2>
+    <p>
+      Questions about privacy go to <a href={`mailto:${SITE.privacyEmail}`}>{SITE.privacyEmail}</a>.
+    </p>
+  </section>
+  <section>
+    <p>
+      <a href={appUrl(app.id)}>About {data.name}</a> · <a href="/legal/privacy/">Privacy overview for all apps</a>
+    </p>
+  </section>
+</LegalLayout>

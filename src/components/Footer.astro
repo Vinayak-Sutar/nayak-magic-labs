@@ -1,0 +1,152 @@
+---
+import Mark from './Mark.astro';
+import { NAV, SITE } from '../site.config';
+import { appUrl, getApps } from '../lib/content';
+
+interface Props {
+  /** The large "Have a project in mind?" block. Off on the enquiry page itself. */
+  cta?: boolean;
+}
+
+const { cta = true } = Astro.props;
+const apps = await getApps();
+const year = new Date().getFullYear();
+---
+
+<footer class="footer band">
+  <div class="wrap">
+    {
+      cta && (
+        <div class="footer__cta">
+          <h2 class="display footer__title">
+            Have a project in mind?<span class="cursor" aria-hidden="true" />
+          </h2>
+          <a class="btn btn--solid" href="/work-with-us/">
+            Start a project
+          </a>
+        </div>
+      )
+    }
+
+    <div class="footer__cols" data-flush={!cta ? '' : undefined}>
+      <div class="footer__col">
+        <h3 class="footer__label">Apps</h3>
+        <ul role="list">
+          {
+            apps.map((app) => (
+              <li>
+                <a href={appUrl(app.id)}>{app.data.name}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h3 class="footer__label">Studio</h3>
+        <ul role="list">
+          {
+            NAV.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+          <li><a href="/legal/privacy/">Privacy</a></li>
+          <li><a href="/legal/terms/">Terms</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h3 class="footer__label">Elsewhere</h3>
+        <ul role="list">
+          <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li><a href={SITE.github} rel="noopener">GitHub</a></li>
+          <li><a href="/rss.xml">RSS</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__base">
+      <span class="footer__copy">
+        <Mark size={22} tone="paper" />
+        © {year}
+        {SITE.name}
+      </span>
+      <span>
+        Made by <a href={SITE.credit.url} rel="noopener">{SITE.credit.name} ↗</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: var(--section);
+    padding: clamp(56px, 7vw, 96px) 0 28px;
+  }
+
+  .footer__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px 48px;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: clamp(48px, 6vw, 80px);
+  }
+  .footer__title {
+    font-size: clamp(38px, 6.4vw, 96px);
+    letter-spacing: -0.05em;
+    max-width: 900px;
+  }
+
+  .footer__cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--band-rule);
+  }
+  .footer__cols[data-flush] {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .footer__label {
+    margin-bottom: 10px;
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--faint);
+  }
+  .footer__col ul {
+    display: grid;
+    gap: 10px;
+  }
+  .footer__col a {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+    transition: color 0.2s;
+  }
+  .footer a:hover {
+    color: var(--glow);
+  }
+
+  .footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 48px;
+    font-size: 13px;
+    color: var(--faint);
+  }
+  .footer__copy {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .footer__base a {
+    transition: color 0.2s;
+  }
+</style>

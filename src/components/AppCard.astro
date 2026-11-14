@@ -1,0 +1,147 @@
+---
+/** A plain card for one app: what it is, where it runs, where to get it. */
+import AppIcon from './AppIcon.astro';
+import { appUrl, tracked, type App } from '../lib/content';
+
+interface Props {
+  app: App;
+  /** Position in the grid, for the staggered reveal. */
+  index?: number;
+}
+
+const { app, index = 0 } = Astro.props;
+const { data } = app;
+const main = data.links[0];
+const SHORT: Record<string, string> = { store: 'Microsoft Store', site: 'Website', source: 'GitHub', demo: 'Demo' };
+---
+
+<article class="card" data-app-card data-platform={data.platform} data-reveal style={`--i:${index}`}>
+  <div class="card__top">
+    <AppIcon name={data.icon} />
+    <span class="status" data-status={data.status}>{data.status}</span>
+  </div>
+
+  <p class="card__platform mono">{data.platformLabel}</p>
+  <h3 class="card__name">
+    <a class="card__link" href={appUrl(app.id)} style={`view-transition-name:app-${app.id}`}>{data.name}</a>
+  </h3>
+  <p class="card__tagline">{data.tagline}</p>
+
+  <div class="card__foot">
+    {
+      main ? (
+        <a class="card__action" href={tracked(main.href, 'app-card')} rel="noopener">
+          {SHORT[main.kind]} ↗
+        </a>
+      ) : (
+        <span />
+      )
+    }
+    <span class="card__go" aria-hidden="true">Details <span class="card__arrow">→</span></span>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    padding: clamp(20px, 2vw, 26px);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-lg);
+    background: color-mix(in srgb, var(--paper) 60%, transparent);
+    transition:
+      border-color 0.25s,
+      transform 0.35s var(--ease),
+      opacity 0.7s var(--ease);
+  }
+  .card:hover,
+  .card:focus-within {
+    border-color: var(--ink);
+    transform: translateY(-3px);
+  }
+  .card:hover :global(.app-icon) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .card__platform {
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .card__name {
+    font-family: var(--font-display);
+    font-stretch: 118%;
+    font-weight: 800;
+    font-size: clamp(26px, 2.5vw, 34px);
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  /* The name is the link; its hit area is stretched over the whole card. */
+  .card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .card__link:focus-visible {
+    outline: none;
+  }
+  .card:has(.card__link:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .card__tagline {
+    margin-top: 10px;
+    margin-bottom: 24px;
+    font-size: 16.5px;
+    line-height: 1.45;
+    color: var(--body);
+    text-wrap: pretty;
+  }
+
+  .card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+  .card__action {
+    position: relative;
+    z-index: 1;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .card__action:hover {
+    color: var(--accent);
+  }
+  .card__go {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .card__arrow {
+    transition: transform 0.3s var(--ease);
+  }
+  .card:hover .card__arrow {
+    transform: translateX(4px);
+  }
+  .card:hover .card__go {
+    color: var(--accent);
+  }
+</style>

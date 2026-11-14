@@ -1,0 +1,81 @@
+---
+import '@fontsource-variable/hubot-sans/wdth.css';
+import '@fontsource-variable/instrument-sans/wght.css';
+import '@fontsource-variable/martian-mono/wght.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+import displayFont from '@fontsource-variable/hubot-sans/files/hubot-sans-latin-wdth-normal.woff2?url';
+import bodyFont from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
+import monoFont from '@fontsource-variable/martian-mono/files/martian-mono-latin-wght-normal.woff2?url';
+
+import type { ComponentProps } from 'astro/types';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import Prompt from '../components/Prompt.astro';
+import SEO from '../components/SEO.astro';
+import { SITE } from '../site.config';
+
+type Props = ComponentProps<typeof SEO> & {
+  /** Show the large "Have a project in mind?" block in the footer. */
+  footerCta?: boolean;
+};
+
+const { footerCta = true, ...seo } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Runs before first paint: applies the saved theme and marks that scripts are on. */}
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        root.classList.add('js');
+        try {
+          var saved = localStorage.getItem('nml-theme');
+          if (saved === 'dark' || saved === 'light') root.dataset.theme = saved;
+        } catch (e) {}
+        // If the page scripts never arrive, show everything rather than leave sections hidden.
+        setTimeout(function () {
+          if (!window.__nmlReady) root.classList.add('reveal-all');
+        }, 3000);
+      })();
+    </script>
+
+    <SEO {...seo} />
+
+    <meta name="theme-color" content="#f2f2ee" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} blog`} href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" as="font" type="font/woff2" href={displayFont} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={bodyFont} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={monoFont} crossorigin />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer cta={footerCta} />
+    <Prompt />
+
+    <script>
+      import { initPrompt } from '../scripts/prompt';
+      import { initTheme } from '../scripts/theme';
+      import { initCodeCopy, initMenu, initReveal } from '../scripts/ui';
+
+      initTheme();
+      initMenu();
+      initReveal();
+      initCodeCopy();
+      initPrompt();
+    </script>
+  </body>
+</html>

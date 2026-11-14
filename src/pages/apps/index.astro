@@ -1,0 +1,127 @@
+---
+import AppCard from '../../components/AppCard.astro';
+import FeaturedApp from '../../components/FeaturedApp.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getApps, PLATFORMS, type Platform } from '../../lib/content';
+import { appCollection, breadcrumbs } from '../../lib/schema';
+
+const apps = await getApps();
+const featured = apps.find((app) => app.data.featured) ?? apps[0];
+const others = apps.filter((app) => app.id !== featured.id);
+
+const count = (platform: Platform) => apps.filter((app) => app.data.platform === platform).length;
+const filters = [
+  { id: 'all', label: 'All', count: apps.length },
+  ...(Object.keys(PLATFORMS) as Platform[])
+    .map((id) => ({ id, label: PLATFORMS[id], count: count(id) }))
+    .filter((filter) => filter.count > 0),
+];
+---
+
+<BaseLayout
+  title="Apps"
+  description={`${apps.length} apps by Nayak Magic Labs for Windows, Chrome and the web: Valocut, Nuqta, LeetViz, Chords Extractor and more. Each one does one specific job.`}
+  jsonLd={[
+    appCollection(apps),
+    breadcrumbs([
+      { name: 'Home', path: '/' },
+      { name: 'Apps', path: '/apps/' },
+    ]),
+  ]}
+>
+  <section class="wrap head">
+    <h1 class="display h-page">Apps</h1>
+    <p class="lede">
+      {apps.length} apps so far, for Windows, Chrome and the web, with a couple of experiments alongside. Each one does
+      one specific job.
+    </p>
+
+    <div class="filters" role="group" aria-label="Filter apps by platform">
+      {
+        filters.map((filter) => (
+          <button class="chip" type="button" data-filter={filter.id} aria-pressed={filter.id === 'all' ? 'true' : 'false'}>
+            {filter.label}
+            <small>{filter.count}</small>
+          </button>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrap list" aria-label="All apps">
+    <FeaturedApp app={featured} />
+    <div class="app-grid">
+      {others.map((app, index) => <AppCard app={app} index={index % 3} />)}
+    </div>
+    <p class="empty muted" data-empty hidden>No apps on this platform yet.</p>
+  </section>
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-app-card]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+
+  function apply(platform: string) {
+    let shown = 0;
+    cards.forEach((card) => {
+      const match = platform === 'all' || card.dataset.platform === platform;
+      card.hidden = !match;
+      if (match) shown++;
+    });
+    buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filter === platform)));
+    if (empty) empty.hidden = shown > 0;
+  }
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const platform = button.dataset.filter ?? 'all';
+      apply(platform);
+      const url = new URL(location.href);
+      if (platform === 'all') url.searchParams.delete('platform');
+      else url.searchParams.set('platform', platform);
+      history.replaceState(null, '', url);
+    });
+  });
+
+  // A link such as /apps/?platform=chrome opens with that filter already on.
+  const wanted = new URLSearchParams(location.search).get('platform');
+  if (wanted && [...buttons].some((button) => button.dataset.filter === wanted)) apply(wanted);
+</script>
+
+<style>
+  .head {
+    padding-top: clamp(48px, 7vw, 96px);
+  }
+  .head .lede {
+    margin-top: 22px;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 32px;
+  }
+  .list {
+    padding-top: 28px;
+  }
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .empty {
+    padding: 24px 0;
+  }
+  @media (max-width: 980px) {
+    .app-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 620px) {
+    .app-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

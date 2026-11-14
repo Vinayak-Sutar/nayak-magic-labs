@@ -1,0 +1,35 @@
+---
+import BlogList from '../../../components/BlogList.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPosts, slugify, tagUrl, type Post } from '../../../lib/content';
+import { breadcrumbs } from '../../../lib/schema';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const tags = [...new Set(posts.map((post) => post.data.tag))];
+  return tags.map((tag) => ({
+    params: { tag: slugify(tag) },
+    props: { tag, tags, posts: posts.filter((post) => post.data.tag === tag) },
+  }));
+}
+
+interface Props {
+  tag: string;
+  tags: string[];
+  posts: Post[];
+}
+
+const { tag, tags, posts } = Astro.props;
+---
+
+<BaseLayout
+  title={`${tag} posts`}
+  description={`Posts about ${tag.toLowerCase()} from the Nayak Magic Labs blog.`}
+  jsonLd={breadcrumbs([
+    { name: 'Home', path: '/' },
+    { name: 'Blog', path: '/blog/' },
+    { name: tag, path: tagUrl(tag) },
+  ])}
+>
+  <BlogList posts={posts} tags={tags} active={tag} />
+</BaseLayout>

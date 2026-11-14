@@ -1,0 +1,101 @@
+---
+import LegalLayout from '../../layouts/LegalLayout.astro';
+import { appPrivacyUrl, getApps } from '../../lib/content';
+import { SITE } from '../../site.config';
+
+const apps = await getApps();
+---
+
+<LegalLayout
+  title="Privacy overview"
+  description="How Nayak Magic Labs apps handle your data: where each app runs, what it sends and whether it needs an account."
+>
+  <section>
+    <h2>The short version</h2>
+    <p>
+      {SITE.name} apps are built to do their work on your device. When an app has to send something, the table below
+      says what, and each app has its own policy with the details.
+    </p>
+  </section>
+
+  <section>
+    <h2>What each app sends</h2>
+    <div class="table" role="region" aria-label="What each app sends" tabindex="0">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">App</th>
+            <th scope="col">Runs on</th>
+            <th scope="col">What it sends</th>
+            <th scope="col">Account</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            apps.map((app) => (
+              <tr>
+                <th scope="row">
+                  <a href={appPrivacyUrl(app.id)}>{app.data.name}</a>
+                </th>
+                <td>{app.data.ledger.runs}</td>
+                <td>{app.data.ledger.sends}</td>
+                <td>{app.data.ledger.account}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>This website</h2>
+    <p>
+      This site uses no advertising trackers and no analytics, and it loads no third-party scripts or fonts. The only
+      thing it stores in your browser is your light or dark theme choice. If you send a message, your email address is
+      used only to reply.
+    </p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p>
+      Questions about privacy go to <a href={`mailto:${SITE.privacyEmail}`}>{SITE.privacyEmail}</a>.
+    </p>
+  </section>
+</LegalLayout>
+
+<style>
+  .table {
+    margin-top: 12px;
+    overflow-x: auto;
+    border: 1px solid var(--ink);
+    border-radius: var(--r);
+  }
+  table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    line-height: 1.45;
+  }
+  th,
+  td {
+    padding: 12px 16px;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  tbody tr + tr {
+    border-top: 1px solid var(--rule);
+  }
+  tbody th {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,13 @@
+---
+title: A local 7B model as a tool-picker
+description: How the Remote Agent discovers its tools at runtime and lets Mistral choose which one to run.
+date: 2026-08-22
+tag: AI
+app: remote-agent
+---
+
+The agent is split into three layers so that the model never hard-codes what it can do: a daemon holding the real OS tools, a client that fetches their schemas at runtime, and the interfaces you talk to.
+
+## Adding a capability
+
+A new tool is one decorated Python function. After a restart the agent discovers it, reads the docstring, and starts using it.

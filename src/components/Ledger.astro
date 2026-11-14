@@ -1,0 +1,61 @@
+---
+/** "What leaves your device": where an app runs, what it sends, whether it needs an account. */
+import type { App } from '../lib/content';
+
+interface Props {
+  ledger: App['data']['ledger'];
+}
+
+const { ledger } = Astro.props;
+const rows = [
+  { k: 'Runs on', v: ledger.runs },
+  { k: 'Sends', v: ledger.sends },
+  { k: 'Account', v: ledger.account },
+];
+---
+
+<div class="ledger">
+  <p class="ledger__head">What leaves your device</p>
+  <dl>
+    {
+      rows.map((row) => (
+        <div class="ledger__row">
+          <dt>{row.k}</dt>
+          <dd>{row.v}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
+
+<style>
+  .ledger {
+    border: 1px solid var(--ink);
+    border-radius: var(--r);
+    overflow: hidden;
+  }
+  .ledger__head {
+    padding: 11px 18px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .ledger dl {
+    margin: 0;
+  }
+  .ledger__row {
+    display: flex;
+    gap: 16px;
+    padding: 14px 18px;
+    font-size: 15.5px;
+    line-height: 1.45;
+  }
+  .ledger__row + .ledger__row {
+    border-top: 1px solid var(--rule);
+  }
+  .ledger dt {
+    flex: 0 0 84px;
+    color: var(--muted);
+  }
+</style>

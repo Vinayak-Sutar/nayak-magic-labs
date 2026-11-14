@@ -1,0 +1,132 @@
+---
+/** The blog index: heading, topic chips, a quick filter box and the list of posts. */
+import { getApps, tagUrl, type Post } from '../lib/content';
+import PostRow from './PostRow.astro';
+
+interface Props {
+  posts: Post[];
+  /** Every topic, for the chips. */
+  tags: string[];
+  /** The topic this page is filtered to, if any. */
+  active?: string;
+}
+
+const { posts, tags, active } = Astro.props;
+const apps = await getApps();
+const appName = (post: Post) => apps.find((app) => app.id === post.data.app?.id)?.data.name;
+---
+
+<section class="wrap head">
+  {
+    active ? (
+      <Fragment>
+        <a class="mono muted crumb" href="/blog/">
+          ← Blog
+        </a>
+        <h1 class="display h-page">{active}</h1>
+        <p class="lede">
+          {posts.length} {posts.length === 1 ? 'post' : 'posts'} filed under {active}.
+        </p>
+      </Fragment>
+    ) : (
+      <Fragment>
+        <h1 class="display h-page">Blog</h1>
+        <p class="lede">Writing on building and shipping software, tools, AI, and whatever else is worth sharing.</p>
+      </Fragment>
+    )
+  }
+
+  <div class="bar">
+    <nav class="tags" aria-label="Topics">
+      <a class="chip" href="/blog/" aria-current={active ? undefined : 'true'}>All</a>
+      {
+        tags.map((tag) => (
+          <a class="chip" href={tagUrl(tag)} aria-current={tag === active ? 'true' : undefined}>
+            {tag}
+          </a>
+        ))
+      }
+    </nav>
+    <input class="search" type="search" placeholder="Filter posts" aria-label="Filter posts" data-post-filter />
+  </div>
+</section>
+
+<section class="wrap list" aria-label="Posts">
+  <div class="rows">
+    {
+      posts.map((post) => (
+        <div data-post={`${post.data.title} ${post.data.description} ${post.data.tag}`.toLowerCase()}>
+          <PostRow post={post} appName={appName(post)} large />
+        </div>
+      ))
+    }
+  </div>
+  <p class="muted empty" data-post-empty hidden>No posts match that.</p>
+</section>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-post-filter]');
+  const posts = document.querySelectorAll<HTMLElement>('[data-post]');
+  const empty = document.querySelector<HTMLElement>('[data-post-empty]');
+
+  input?.addEventListener('input', () => {
+    const query = input.value.trim().toLowerCase();
+    let shown = 0;
+    posts.forEach((post) => {
+      const match = !query || (post.dataset.post ?? '').includes(query);
+      post.hidden = !match;
+      if (match) shown++;
+    });
+    if (empty) empty.hidden = shown > 0;
+  });
+</script>
+
+<style>
+  .head {
+    padding-top: clamp(48px, 7vw, 96px);
+  }
+  .crumb {
+    display: inline-block;
+    margin-bottom: 18px;
+    transition: color 0.2s;
+  }
+  .crumb:hover {
+    color: var(--accent);
+  }
+  .head .lede {
+    margin-top: 22px;
+    max-width: 34em;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 32px;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .search {
+    flex: 0 1 280px;
+    min-width: 200px;
+    border: 1px solid var(--ink);
+    border-radius: var(--r-pill);
+    padding: 9px 16px;
+    font-size: 15px;
+    background: transparent;
+    color: var(--ink);
+  }
+  .search::placeholder {
+    color: var(--muted);
+  }
+  .list {
+    padding-top: 28px;
+  }
+  .empty {
+    padding: 24px 0;
+  }
+</style>

@@ -1,0 +1,325 @@
+---
+import { getEntry, render } from 'astro:content';
+import AppIcon from '../../components/AppIcon.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { appUrl, formatDate, getPosts, postUrl, readingTime, tagUrl, type Post } from '../../lib/content';
+import { blogPosting, breadcrumbs } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { id: post.id },
+    props: { post, next: posts.length > 1 ? posts[(index + 1) % posts.length] : undefined },
+  }));
+}
+
+interface Props {
+  post: Post;
+  next?: Post;
+}
+
+const { post, next } = Astro.props;
+const { data } = post;
+const { Content, headings } = await render(post);
+const contents = headings.filter((heading) => heading.depth === 2);
+const minutes = readingTime(post.body);
+const words = (post.body ?? '').split(/\s+/).filter(Boolean).length;
+const app = data.app ? await getEntry(data.app) : undefined;
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  type="article"
+  published={data.date}
+  modified={data.updated}
+  jsonLd={[
+    blogPosting(post, words),
+    breadcrumbs([
+      { name: 'Home', path: '/' },
+      { name: 'Blog', path: '/blog/' },
+      { name: data.title, path: postUrl(post.id) },
+    ]),
+  ]}
+>
+  <div class="progress" aria-hidden="true"></div>
+
+  <article class="wrap post">
+    <a class="back" href="/blog/">← Blog</a>
+
+    <header class="post__head">
+      <p class="post__meta">
+        <a href={tagUrl(data.tag)}>{data.tag}</a> ·
+        <time datetime={data.date.toISOString().slice(0, 10)}>{formatDate(data.date)}</time> · {minutes} min read
+        {data.draft && <span class="post__draft">Draft</span>}
+      </p>
+      <h1 class="display post__title" style={`view-transition-name:post-${post.id}`}>{data.title}</h1>
+      <p class="post__dek">{data.description}</p>
+    </header>
+
+    <div class="post__grid">
+      <div class="post__main">
+        <div class="prose">
+          <Content />
+        </div>
+
+        <div class="post__cta">
+          <p>Building something similar? We take on client work.</p>
+          <a class="btn btn--solid btn--sm" href="/work-with-us/">Start a project</a>
+        </div>
+      </div>
+
+      <aside class="post__aside">
+        {
+          contents.length > 0 && (
+            <nav class="aside__nav" aria-label="In this post">
+              <p class="aside__label">In this post</p>
+              <ul role="list">
+                {contents.map((heading) => (
+                  <li>
+                    <a href={`#${heading.slug}`}>{heading.text}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )
+        }
+
+        {
+          app && (
+            <a class="aside__app" href={appUrl(app.id)}>
+              <AppIcon name={app.data.icon} />
+              <span>
+                <span class="aside__app-name">{app.data.name}</span>
+                <span class="aside__app-meta">
+                  {app.data.status} · {app.data.platformLabel}
+                </span>
+              </span>
+            </a>
+          )
+        }
+
+        <button class="aside__copy" type="button" data-copy-link>Copy link</button>
+      </aside>
+    </div>
+  </article>
+
+  {
+    next && (
+      <nav class="wrap more" aria-label="More posts">
+        <a class="next" href={postUrl(next.id)}>
+          <span class="muted">Next post</span>
+          <span class="display next__title">{next.data.title} →</span>
+        </a>
+      </nav>
+    )
+  }
+</BaseLayout>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-copy-link]');
+  button?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(location.href.split('#')[0]);
+      button.textContent = 'Link copied';
+    } catch {
+      button.textContent = 'Copy it from the address bar';
+    }
+    setTimeout(() => (button.textContent = 'Copy link'), 1600);
+  });
+</script>
+
+<style>
+  /* Reading progress along the top edge, driven by scroll where the browser supports it. */
+  .progress {
+    position: fixed;
+    z-index: 41;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+  @supports (animation-timeline: scroll()) {
+    .progress {
+      animation: progress linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+  @keyframes progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .post {
+    padding-top: clamp(32px, 5vw, 60px);
+  }
+  .back {
+    font-size: 14.5px;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .back:hover {
+    color: var(--accent);
+  }
+
+  .post__head {
+    max-width: 980px;
+    margin-top: 28px;
+  }
+  .post__meta {
+    font-size: 14.5px;
+    color: var(--muted);
+  }
+  .post__meta a {
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    transition: color 0.2s;
+  }
+  .post__meta a:hover {
+    color: var(--accent);
+  }
+  .post__draft {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border: 1px dashed var(--muted);
+    border-radius: var(--r-pill);
+    font-size: 12px;
+  }
+  .post__title {
+    margin-top: 18px;
+    font-size: clamp(38px, 5.6vw, 80px);
+    line-height: 0.96;
+  }
+  .post__dek {
+    margin-top: 22px;
+    max-width: 760px;
+    font-size: clamp(18px, 1.7vw, 22px);
+    line-height: 1.5;
+    color: var(--body);
+    text-wrap: pretty;
+  }
+
+  .post__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px clamp(32px, 6vw, 110px);
+    align-items: flex-start;
+    margin-top: clamp(40px, 5vw, 64px);
+    padding-top: clamp(32px, 4vw, 48px);
+    border-top: 1px solid var(--ink);
+  }
+  .post__main {
+    flex: 1 1 480px;
+    min-width: 0;
+    max-width: 700px;
+  }
+  .post__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--ink);
+    font-size: 15.5px;
+    color: var(--muted);
+  }
+
+  .post__aside {
+    flex: 0 1 260px;
+    min-width: 220px;
+    position: sticky;
+    top: calc(var(--header-h) + 32px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+  }
+  .aside__label {
+    margin-bottom: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .aside__nav ul {
+    display: grid;
+    gap: 10px;
+  }
+  .aside__nav a {
+    font-size: 15px;
+    line-height: 1.35;
+    transition: color 0.2s;
+  }
+  .aside__nav a:hover {
+    color: var(--accent);
+  }
+  .aside__app {
+    align-self: stretch;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--ink);
+    border-radius: var(--r);
+    transition: background-color 0.2s;
+  }
+  .aside__app:hover {
+    background: var(--panel);
+  }
+  .aside__app-name {
+    display: block;
+    font-weight: 600;
+  }
+  .aside__app-meta {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .aside__copy {
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-pill);
+    padding: 7px 14px;
+    font-size: 13.5px;
+    transition: border-color 0.2s;
+  }
+  .aside__copy:hover {
+    border-color: var(--ink);
+  }
+
+  .more {
+    margin-top: clamp(64px, 8vw, 110px);
+  }
+  .next {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 28px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+  .next:hover {
+    color: var(--accent);
+  }
+  .next__title {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: clamp(26px, 3.2vw, 44px);
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  @media (max-width: 860px) {
+    .post__aside {
+      position: static;
+      flex-basis: 100%;
+      order: -1;
+    }
+  }
+</style>

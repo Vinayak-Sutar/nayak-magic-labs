@@ -1,0 +1,212 @@
+---
+/**
+ * The giant live prompt in the home hero. At rest it is the › nml_ mark.
+ * Start typing and it becomes a search line with a ghost completion.
+ * Behaviour lives in scripts/prompt.ts; without JavaScript it stays the mark.
+ */
+const LETTERS = [
+  { glyph: 'n', word: 'Nayak', pad: 1.6 },
+  { glyph: 'm', word: 'Magic', pad: 1.05 },
+  { glyph: 'l', word: 'Labs', pad: 1.76 },
+];
+---
+
+<div class="hp" data-prompt-hero>
+  <div class="hp__stage">
+    {/* Holds the row's baseline in place while the typed line changes size. */}
+    <span class="hp__strut" aria-hidden="true">n</span>
+
+    <div class="hp__line" data-prompt-line>
+      <span class="hp__chev" aria-hidden="true">›</span>
+      <span class="hp__idle" role="img" aria-label="nml: Nayak Magic Labs">
+        {
+          LETTERS.map((letter, i) => (
+            <span class="hp__letter" style={`--i:${i};--pad:${letter.pad}em`} aria-hidden="true">
+              <span class="hp__glyph">{letter.glyph}</span>
+              <span class="hp__word">{letter.word}</span>
+            </span>
+          ))
+        }
+      </span>
+      <span class="hp__typed" data-prompt-typed aria-hidden="true"></span>
+      <span class="hp__cursor" data-prompt-cursor aria-hidden="true"></span>
+      <span class="hp__ghost" data-prompt-ghost aria-hidden="true"></span>
+    </div>
+
+    <input
+      class="hp__input"
+      data-prompt-input
+      type="text"
+      role="combobox"
+      aria-label="Type to search apps, posts and pages"
+      aria-expanded="false"
+      aria-autocomplete="list"
+      autocomplete="off"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
+      enterkeyhint="go"
+    />
+  </div>
+
+  <ul class="prompt-list hp__list" role="listbox" aria-label="Results" data-prompt-list hidden></ul>
+</div>
+
+<style>
+  .hp {
+    --hp-size: clamp(72px, 25vw, 300px);
+    position: relative;
+  }
+
+  .hp__stage {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    min-height: calc(var(--hp-size) * 1.03);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    line-height: 0.86;
+    border-radius: var(--r);
+  }
+  /* A focus ring for keyboard users who tab here. Once they type, the line itself shows focus. */
+  .hp:not([data-typing]) .hp__stage:has(.hp__input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 10px;
+  }
+
+  .hp__strut {
+    width: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-size: var(--hp-size);
+  }
+
+  .hp__line {
+    display: flex;
+    align-items: baseline;
+    font-size: var(--hp-size);
+    white-space: pre;
+    user-select: none;
+  }
+
+  .hp__chev {
+    /* Pulls the glyph's own side bearing back so its edge sits on the page margin. */
+    margin-left: -0.219em;
+    margin-right: 0.1em;
+    color: var(--accent);
+    animation: hp-key 0.01s steps(1) 0.15s both;
+  }
+
+  .hp__idle {
+    display: flex;
+    gap: 0.06em;
+  }
+  .hp__letter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.09em;
+    animation: hp-key 0.01s steps(1) calc(0.34s + var(--i) * 0.17s) both;
+  }
+  .hp__word {
+    padding-left: var(--pad);
+    font-size: 0.056em;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    animation: hp-fade 0.6s ease 1s both;
+  }
+
+  .hp__typed {
+    display: none;
+    letter-spacing: 0.01em;
+  }
+  .hp__ghost {
+    display: none;
+    letter-spacing: 0.01em;
+    color: var(--faint);
+  }
+
+  /* Zero-width, so the bar sits under the next character like a terminal cursor. */
+  .hp__cursor {
+    position: relative;
+    width: 0;
+    height: 0.085em;
+  }
+  .hp__cursor::after {
+    content: '';
+    position: absolute;
+    left: 0.06em;
+    top: 0;
+    width: 0.5em;
+    height: 100%;
+    background: var(--accent);
+    animation: blink 1s steps(1) infinite;
+  }
+  .hp[data-focus] .hp__cursor::after {
+    animation-duration: 0.7s;
+  }
+
+  /* After the first search, nml types back in quickly instead of replaying the intro. */
+  .hp[data-seen] .hp__letter {
+    animation-delay: calc(var(--i) * 0.07s);
+  }
+  .hp[data-seen] .hp__word {
+    animation-delay: 0.22s;
+    animation-duration: 0.3s;
+  }
+
+  .hp[data-typing] .hp__idle {
+    display: none;
+  }
+  .hp[data-typing] .hp__typed,
+  .hp[data-typing] .hp__ghost {
+    display: block;
+  }
+  .hp[data-typing] .hp__cursor::after {
+    left: 0.02em;
+  }
+
+  /* The real, invisible field. It covers the stage so a click anywhere focuses it. */
+  .hp__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    font-size: 16px;
+    cursor: text;
+  }
+
+  .hp__list {
+    position: absolute;
+    z-index: 6;
+    left: 0;
+    top: calc(var(--hp-size) * 1.03 + 12px);
+    width: min(100%, 620px);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: var(--r-lg);
+    box-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.45);
+  }
+
+  @keyframes hp-key {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes hp-fade {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+</style>

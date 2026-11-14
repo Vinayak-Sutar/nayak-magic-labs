@@ -1,0 +1,213 @@
+---
+/**
+ * The search palette. Opens from the header button, with "/" or Ctrl/⌘K, or by
+ * typing on any page that has no hero prompt. Behaviour lives in scripts/prompt.ts.
+ */
+---
+
+<dialog class="palette" data-prompt-dialog aria-label="Search the site">
+  <div class="palette__box">
+    <div class="palette__line">
+      <span class="palette__chev" aria-hidden="true">›</span>
+      <div class="palette__field">
+        <div class="palette__mirror" aria-hidden="true">
+          <span class="palette__typed" data-prompt-typed></span><span class="palette__ghost" data-prompt-ghost></span>
+        </div>
+        <input
+          class="palette__input"
+          data-prompt-input
+          type="text"
+          role="combobox"
+          aria-label="Search apps, posts and pages"
+          aria-expanded="false"
+          aria-autocomplete="list"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          enterkeyhint="go"
+          placeholder="Search apps, posts and pages"
+        />
+      </div>
+      <kbd class="palette__key">esc</kbd>
+    </div>
+    <ul class="prompt-list palette__list" role="listbox" aria-label="Results" data-prompt-list hidden></ul>
+    <p class="palette__hint">
+      <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>tab</kbd> complete</span>
+      <span class="palette__try">try <code>theme</code> or <code>help</code></span>
+    </p>
+  </div>
+</dialog>
+
+<style is:global>
+  /* Shared by the palette and the hero prompt: the list of results. */
+  .prompt-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+  }
+  .prompt-list [role='option'] {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 11px 14px;
+    border-radius: var(--r-sm);
+    font-size: 15.5px;
+    cursor: pointer;
+  }
+  .prompt-list [role='option'][aria-selected='true'] {
+    background: var(--panel);
+  }
+  .prompt-list [role='option'][aria-selected='true'] .prompt-option__label::before {
+    content: '› ';
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .prompt-option__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .prompt-option__kind {
+    flex: none;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .prompt-note {
+    padding: 12px 14px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .palette {
+    width: min(600px, calc(100vw - 32px));
+    max-width: none;
+    max-height: none;
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    overflow: visible;
+  }
+  .palette::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  .palette[open] {
+    animation: palette-in 0.2s var(--ease);
+  }
+  @keyframes palette-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+    }
+  }
+
+  .palette__box {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    box-shadow: 0 40px 80px -20px rgb(0 0 0 / 0.5);
+  }
+  .palette__line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px 0 20px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 16px;
+  }
+  .palette__chev {
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .palette__field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+  .palette__input,
+  .palette__mirror {
+    font: inherit;
+    letter-spacing: 0;
+    padding: 18px 0;
+    white-space: pre;
+  }
+  .palette__input {
+    position: relative;
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--ink);
+  }
+  .palette__input::placeholder {
+    color: var(--faint);
+    font-family: var(--font-body);
+  }
+  /* Sits under the input and shows the grey completion after what was typed. */
+  .palette__mirror {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .palette__typed {
+    visibility: hidden;
+  }
+  .palette__ghost {
+    color: var(--faint);
+  }
+  .palette__key,
+  .palette__hint kbd {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    background: var(--panel);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+  .palette__list {
+    max-height: min(50vh, 420px);
+    overflow-y: auto;
+  }
+  .palette__hint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 0;
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .palette__hint kbd {
+    margin-right: 3px;
+  }
+  .palette__hint code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink);
+  }
+  .palette__try {
+    margin-left: auto;
+  }
+  @media (max-width: 520px) {
+    .palette {
+      margin-top: 8vh;
+    }
+    .palette__hint span:not(.palette__try) {
+      display: none;
+    }
+    .palette__try {
+      margin-left: 0;
+    }
+  }
+</style>

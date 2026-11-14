@@ -1,0 +1,52 @@
+/*
+ * Design tokens. Three colours carry the brand (bone paper, ink, cobalt) and
+ * everything else is mixed from ink and paper, so a theme is four values.
+ */
+:root {
+  --ink: #0b0b0c;
+  --paper: #f2f2ee;
+  --accent: #2b4bf2; /* cobalt, for use on paper */
+  --glow: #7f95ff; /* cobalt, for use on ink */
+  --on-accent: #f2f2ee;
+  --raise: #ffffff; /* form fields, floating panels */
+  --danger: #b3261e;
+
+  --body: color-mix(in srgb, var(--ink), var(--paper) 17%);
+  --muted: color-mix(in srgb, var(--ink), var(--paper) 33%);
+  --faint: color-mix(in srgb, var(--ink), var(--paper) 60%);
+  --rule: color-mix(in srgb, var(--ink), var(--paper) 84%);
+  --rule-2: color-mix(in srgb, var(--ink), var(--paper) 90%);
+  --panel: color-mix(in srgb, var(--ink), var(--paper) 94%);
+  --band-rule: color-mix(in srgb, var(--ink), var(--paper) 13%);
+  --band-raise: color-mix(in srgb, var(--ink), var(--paper) 7%);
+
+  --font-display: 'Hubot Sans Variable', 'Hubot Sans', system-ui, sans-serif;
+  --font-body: 'Instrument Sans Variable', 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'Martian Mono Variable', 'Martian Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --wrap: 1320px;
+  --gutter: clamp(18px, 4vw, 40px);
+  --section: clamp(88px, 10vw, 140px);
+
+  --r-sm: 6px;
+  --r: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --header-h: 61px;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --ink: #ededea;
+  --paper: #0c0d10;
+  --accent: #7f95ff;
+  --glow: #3f55d9;
+  --on-accent: #0c0d10;
+  --raise: #15161b;
+  --danger: #ff8a80;
+
+  color-scheme: dark;
+}

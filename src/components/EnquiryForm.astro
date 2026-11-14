@@ -1,0 +1,276 @@
+---
+/**
+ * The project enquiry form. With no form endpoint configured it opens a
+ * pre-filled email; with SITE.formEndpoint set it posts the answers as JSON.
+ */
+import { BUDGETS, SERVICES, TIMELINES } from '../data/studio';
+import { SITE } from '../site.config';
+---
+
+<div class="enquiry">
+  <form
+    class="form"
+    data-enquiry
+    data-endpoint={SITE.formEndpoint}
+    data-to={SITE.email}
+    action={`mailto:${SITE.email}`}
+    method="post"
+    enctype="text/plain"
+    novalidate
+  >
+    <fieldset>
+      <legend>What do you need?</legend>
+      <div class="chips">
+        {
+          SERVICES.map((service) => (
+            <button class="chip" type="button" data-chip="type" data-value={service.type} aria-pressed="false">
+              {service.type}
+            </button>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <div class="pair">
+      <fieldset>
+        <legend>Timeline</legend>
+        <div class="chips">
+          {
+            TIMELINES.map((value) => (
+              <button class="chip chip--sm" type="button" data-chip="timeline" data-value={value} aria-pressed="false">
+                {value}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Budget</legend>
+        <div class="chips">
+          {
+            BUDGETS.map((value) => (
+              <button class="chip chip--sm" type="button" data-chip="budget" data-value={value} aria-pressed="false">
+                {value}
+              </button>
+            ))
+          }
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="fields">
+      <label class="field">
+        Name
+        <input name="name" type="text" autocomplete="name" />
+      </label>
+      <label class="field">
+        Email
+        <input name="email" type="email" autocomplete="email" required />
+      </label>
+    </div>
+
+    <label class="field">
+      About the project
+      <textarea name="message" rows="5" placeholder="What it should do, who it’s for, and anything that already exists."
+      ></textarea>
+    </label>
+
+    <p class="error" role="alert" data-error hidden></p>
+
+    <button class="btn btn--accent" type="submit">Send message</button>
+  </form>
+
+  <div class="thanks" data-thanks tabindex="-1" hidden>
+    <p class="display thanks__title">
+      Thanks, <span data-thanks-name>there</span>.<span class="cursor" aria-hidden="true"></span>
+    </p>
+    <p class="thanks__text" data-thanks-text></p>
+  </div>
+</div>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-enquiry]');
+
+  if (form) {
+    const thanks = document.querySelector<HTMLElement>('[data-thanks]')!;
+    const error = form.querySelector<HTMLElement>('[data-error]')!;
+    const chips = [...form.querySelectorAll<HTMLButtonElement>('[data-chip]')];
+    const types = new Set<string>();
+    const single: Record<string, string> = { timeline: '', budget: '' };
+
+    const paint = () => {
+      for (const chip of chips) {
+        const group = chip.dataset.chip!;
+        const value = chip.dataset.value!;
+        chip.setAttribute('aria-pressed', String(group === 'type' ? types.has(value) : single[group] === value));
+      }
+    };
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        const group = chip.dataset.chip!;
+        const value = chip.dataset.value!;
+        if (group === 'type') {
+          if (types.has(value)) types.delete(value);
+          else types.add(value);
+        } else {
+          single[group] = single[group] === value ? '' : value;
+        }
+        paint();
+      });
+    }
+
+    // Links such as /work-with-us/?type=Web%20app arrive with that choice made.
+    const wanted = new URLSearchParams(location.search).get('type');
+    if (wanted && chips.some((chip) => chip.dataset.chip === 'type' && chip.dataset.value === wanted)) {
+      types.add(wanted);
+      paint();
+    }
+
+    const fail = (message: string) => {
+      error.textContent = message;
+      error.hidden = false;
+    };
+
+    const finish = (name: string, message: string) => {
+      thanks.querySelector('[data-thanks-name]')!.textContent = name.split(/\s+/)[0] || 'there';
+      thanks.querySelector('[data-thanks-text]')!.textContent = message;
+      form.hidden = true;
+      thanks.hidden = false;
+      thanks.focus();
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      error.hidden = true;
+
+      const data = new FormData(form);
+      const name = String(data.get('name') ?? '').trim();
+      const email = String(data.get('email') ?? '').trim();
+      const message = String(data.get('message') ?? '').trim();
+      const to = form.dataset.to ?? '';
+
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        fail('Add an email address so we can reply.');
+        form.querySelector<HTMLInputElement>('[name="email"]')?.focus();
+        return;
+      }
+
+      const answers = {
+        name,
+        email,
+        type: [...types].join(', '),
+        timeline: single.timeline,
+        budget: single.budget,
+        message,
+      };
+
+      const endpoint = form.dataset.endpoint;
+      if (endpoint) {
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(answers),
+          });
+          if (!response.ok) throw new Error(String(response.status));
+          finish(name, `Your message is in. Every message gets a reply, usually within two working days, at ${email}.`);
+        } catch {
+          fail(`That didn’t send. Please email ${to} instead.`);
+        }
+        return;
+      }
+
+      // No endpoint configured: hand the message to the visitor's own email app.
+      const details = [
+        answers.type && `Need: ${answers.type}`,
+        answers.timeline && `Timeline: ${answers.timeline}`,
+        answers.budget && `Budget: ${answers.budget}`,
+        name && `Name: ${name}`,
+        `Reply to: ${email}`,
+      ]
+        .filter(Boolean)
+        .join('\n');
+      const body = message ? `${details}\n\n${message}` : details;
+      const subject = name ? `Project enquiry from ${name}` : 'Project enquiry';
+      location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      finish(name, `Your email app should have opened with the message ready to send. If it didn’t, write to ${to}.`);
+    });
+  }
+</script>
+
+<style>
+  .enquiry {
+    border: 1px solid var(--ink);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    padding: clamp(20px, 3vw, 32px);
+  }
+  fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    padding: 0;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip--sm {
+    padding: 7px 13px;
+    font-size: 14px;
+  }
+  .pair {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 26px 40px;
+  }
+  .pair fieldset {
+    flex: 1 1 240px;
+  }
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 14px;
+  }
+  .error {
+    font-size: 14.5px;
+    color: var(--danger);
+  }
+  .form .btn {
+    align-self: flex-start;
+    border: 0;
+  }
+
+  .thanks {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    min-height: 320px;
+    padding: clamp(28px, 4vw, 48px);
+    outline: none;
+  }
+  .thanks__title {
+    font-size: clamp(30px, 3.4vw, 44px);
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .thanks__text {
+    max-width: 460px;
+    font-size: 17px;
+    color: var(--body);
+  }
+</style>

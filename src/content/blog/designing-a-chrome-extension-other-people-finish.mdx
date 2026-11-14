@@ -1,0 +1,13 @@
+---
+title: Designing a Chrome extension other people finish
+description: LeetViz is a thin shell over a community registry. The hard part was contribution friction, not code.
+date: 2026-09-05
+tag: Open source
+app: leetviz
+---
+
+Building one visualizer per LeetCode problem is far too much for one team. So the extension is deliberately a thin shell, and the visualizers live in a community registry.
+
+## A contract with two jobs
+
+It has to be loose enough that anyone can write a visualizer in an evening, and tight enough that fifty of them still feel like one tool: a fixed file layout, a meta.json, a shared theme with one overridable accent, and a prompt that produces all of it correctly on the first try.

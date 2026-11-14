@@ -1,0 +1,224 @@
+---
+/** The wide card for the flagship app: the one with a store listing and a picture. */
+import { Image } from 'astro:assets';
+import AppIcon from './AppIcon.astro';
+import { appUrl, tracked, type App } from '../lib/content';
+
+interface Props {
+  app: App;
+}
+
+const { app } = Astro.props;
+const { data } = app;
+const main = data.links[0];
+
+// A decorative timeline under the picture: kills found, and the clips cut around them.
+const KILLS = [9, 14, 31, 47, 52, 58, 83];
+const CLIPS = [
+  { left: 6, width: 12 },
+  { left: 28, width: 7 },
+  { left: 44, width: 18 },
+  { left: 80, width: 8 },
+];
+---
+
+<article class="feature band" data-app-card data-platform={data.platform} data-reveal>
+  <div class="feature__body">
+    <div class="feature__top">
+      <AppIcon name={data.icon} size={48} />
+      <span class="status" data-status={data.status}>{data.status} · {data.platformLabel}</span>
+    </div>
+
+    <h3 class="display feature__name">
+      <a href={appUrl(app.id)} style={`view-transition-name:app-${app.id}`}>{data.name}</a>
+    </h3>
+    <p class="feature__tagline">{data.tagline}</p>
+    <p class="feature__line">{data.oneLiner}</p>
+
+    <dl class="feature__specs">
+      {
+        data.specs.slice(1).map((spec) => (
+          <div>
+            <dt>{spec.k}</dt>
+            <dd>{spec.v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="feature__btns">
+      {
+        main && (
+          <a class="btn btn--accent btn--sm" href={tracked(main.href, 'home-featured')} rel="noopener">
+            {main.label}
+          </a>
+        )
+      }
+      <a class="btn btn--ghost btn--sm" href={appUrl(app.id)}>Details</a>
+    </div>
+  </div>
+
+  {
+    data.poster && (
+      <figure class="feature__media">
+        <div class="feature__frame">
+          <Image
+            src={data.poster}
+            alt={data.posterAlt ?? ''}
+            widths={[480, 720, 960]}
+            sizes="(max-width: 900px) 92vw, 600px"
+            loading="lazy"
+          />
+        </div>
+        <div class="timeline" aria-hidden="true">
+          {CLIPS.map((clip) => <span class="timeline__clip" style={`left:${clip.left}%;width:${clip.width}%`} />)}
+          {KILLS.map((at) => <i class="timeline__kill" style={`left:${at}%`} />)}
+        </div>
+        <figcaption>Every kill marked on the timeline, with clips cut around them.</figcaption>
+      </figure>
+    )
+  }
+</article>
+
+<style>
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(28px, 4vw, 56px);
+    align-items: center;
+    padding: clamp(22px, 3vw, 40px);
+    border-radius: var(--r-lg);
+  }
+
+  .feature__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+  .feature__top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+
+  .feature__name {
+    font-size: clamp(44px, 5.6vw, 84px);
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+  }
+  .feature__name a {
+    transition: color 0.2s;
+  }
+  .feature__name a:hover {
+    color: var(--glow);
+  }
+
+  .feature__tagline {
+    margin-top: 16px;
+    font-size: clamp(19px, 1.8vw, 23px);
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+  .feature__line {
+    margin-top: 10px;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--faint);
+    max-width: 30em;
+    text-wrap: pretty;
+  }
+
+  .feature__specs {
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0 20px;
+    margin: 24px 0 26px;
+    border-bottom: 1px solid var(--band-rule);
+  }
+  .feature__specs div {
+    padding: 10px 0;
+    border-top: 1px solid var(--band-rule);
+  }
+  .feature__specs dt {
+    font-size: 13px;
+    color: var(--faint);
+  }
+  .feature__specs dd {
+    font-size: 15.5px;
+    font-weight: 600;
+  }
+
+  .feature__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .feature__media {
+    min-width: 0;
+  }
+  .feature__frame {
+    border-radius: var(--r);
+    overflow: hidden;
+    border: 1px solid var(--band-rule);
+    background: #000;
+  }
+  .feature__frame img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .feature__media figcaption {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .timeline {
+    position: relative;
+    height: 26px;
+    margin-top: 10px;
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(90deg, var(--band-rule) 0 1px, transparent 1px 4%),
+      var(--band-raise);
+  }
+  .timeline__clip {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--glow) 30%, transparent);
+    border: 1px solid var(--glow);
+  }
+  .timeline__kill {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--paper);
+  }
+  .timeline__kill::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -4px;
+    width: 7px;
+    height: 7px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--paper);
+  }
+
+  @media (max-width: 900px) {
+    .feature {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .feature__media {
+      order: -1;
+    }
+  }
+</style>

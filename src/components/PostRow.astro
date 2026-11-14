@@ -1,0 +1,111 @@
+---
+/** One blog post as a ruled row: date, title and summary, tag and reading time. */
+import { formatDate, postUrl, readingTime, type Post } from '../lib/content';
+
+interface Props {
+  post: Post;
+  /** Larger type, for the blog index. */
+  large?: boolean;
+  /** Name of the related app, shown on the blog index. */
+  appName?: string;
+}
+
+const { post, large = false, appName } = Astro.props;
+const { data } = post;
+const minutes = readingTime(post.body);
+---
+
+<a class:list={['post-row', { 'post-row--large': large }]} href={postUrl(post.id)}>
+  <time class="post-row__date" datetime={data.date.toISOString().slice(0, 10)}>{formatDate(data.date)}</time>
+  <span class="post-row__main">
+    <span class="post-row__title" style={`view-transition-name:post-${post.id}`}>
+      <span class="chev post-row__chev" aria-hidden="true">›</span>{data.title}
+    </span>
+    <span class="post-row__dek">{data.description}</span>
+  </span>
+  <span class="post-row__meta">
+    {data.tag} · {minutes} min{appName && ` · ${appName}`}
+    {data.draft && <span class="post-row__draft">Draft</span>}
+  </span>
+</a>
+
+<style>
+  .post-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 32px;
+    align-items: baseline;
+    padding: 24px 0;
+    transition: color 0.2s;
+  }
+  .post-row:hover {
+    color: var(--accent);
+  }
+
+  .post-row__date {
+    flex: 0 0 120px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .post-row__main {
+    flex: 1 1 420px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .post-row__title {
+    width: fit-content;
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: clamp(22px, 2.4vw, 32px);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+  .post-row--large .post-row__title {
+    font-size: clamp(24px, 2.6vw, 36px);
+    line-height: 1.08;
+  }
+
+  /* The prompt chevron slides in from nothing on hover. */
+  .post-row__chev {
+    display: inline-block;
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    vertical-align: baseline;
+    font-size: 0.8em;
+    transition:
+      width 0.3s var(--ease),
+      opacity 0.2s;
+  }
+  .post-row:hover .post-row__chev,
+  .post-row:focus-visible .post-row__chev {
+    width: 1.1em;
+    opacity: 1;
+  }
+
+  .post-row__dek {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 720px;
+    text-wrap: pretty;
+  }
+  .post-row--large .post-row__dek {
+    font-size: 16.5px;
+  }
+  .post-row__meta {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .post-row__draft {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border: 1px dashed var(--muted);
+    border-radius: var(--r-pill);
+    font-size: 12px;
+  }
+</style>

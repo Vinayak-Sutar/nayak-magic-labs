@@ -1,0 +1,15 @@
+---
+title: Translating songs is the wrong goal
+description: Why Nuqta shows what a line means, not just what it says, and why that forced a constrained output format.
+date: 2026-09-19
+tag: Design
+app: nuqta
+---
+
+Machine translation is literal, and literal is exactly wrong for songs. Translate a line of Urdu poetry word for word and you get a grammatical sentence that means almost nothing.
+
+The version worth building is the one a friend who speaks the language would give you: what it says, then what it means.
+
+## Keeping three columns aligned
+
+If the model merges or drops a single line, the original, translation and meaning columns stop matching. So the response format has to be constrained rather than free prose.
