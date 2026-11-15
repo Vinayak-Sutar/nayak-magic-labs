@@ -4,8 +4,17 @@
  */
 export const SITE = {
   name: 'Nayak Magic Labs',
-  /** Canonical origin, no trailing slash. Placeholder until the domain is live. */
-  url: 'https://nayakmagiclabs.com',
+
+  // ── Where the site is served ────────────────────────────────────────────────
+  // Today it is deployed to the GitHub Pages project URL, which lives under a
+  // sub-path. When nayakmagiclabs.com goes live, flip these two:
+  //   url:      'https://nayakmagiclabs.com'
+  //   basePath: '/'
+  // and add a public/CNAME file containing   nayakmagiclabs.com
+  /** Canonical origin, no trailing slash. */
+  url: 'https://vinayak-sutar.github.io',
+  /** Sub-path the site is served from. '/' once it is on its own domain. */
+  basePath: '/nayak-magic-labs/',
   title: 'Nayak Magic Labs — indie software publisher',
   description:
     'Nayak Magic Labs is an indie software publisher making browser extensions, Windows apps and web tools, and building software for clients.',

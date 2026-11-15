@@ -2,7 +2,7 @@
 import { getEntry, render } from 'astro:content';
 import AppIcon from '../../components/AppIcon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { appUrl, formatDate, getPosts, postUrl, readingTime, tagUrl, type Post } from '../../lib/content';
+import { appUrl, formatDate, getPosts, postUrl, readingTime, tagUrl, withBase, type Post } from '../../lib/content';
 import { blogPosting, breadcrumbs } from '../../lib/schema';
 
 export async function getStaticPaths() {
@@ -45,7 +45,7 @@ const app = data.app ? await getEntry(data.app) : undefined;
   <div class="progress" aria-hidden="true"></div>
 
   <article class="wrap post">
-    <a class="back" href="/blog/">← Blog</a>
+    <a class="back" href={withBase('/blog/')}>← Blog</a>
 
     <header class="post__head">
       <p class="post__meta">
@@ -65,7 +65,7 @@ const app = data.app ? await getEntry(data.app) : undefined;
 
         <div class="post__cta">
           <p>Building something similar? We take on client work.</p>
-          <a class="btn btn--solid btn--sm" href="/work-with-us/">Start a project</a>
+          <a class="btn btn--solid btn--sm" href={withBase('/work-with-us/')}>Start a project</a>
         </div>
       </div>
 

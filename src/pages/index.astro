@@ -5,7 +5,7 @@ import HeroPrompt from '../components/HeroPrompt.astro';
 import PostRow from '../components/PostRow.astro';
 import { SERVICES } from '../data/studio';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { appUrl, getApps, getPosts } from '../lib/content';
+import { appUrl, getApps, getPosts, withBase } from '../lib/content';
 import { organization, website } from '../lib/schema';
 
 const apps = await getApps();
@@ -27,8 +27,8 @@ const languages = featured.data.specs.find((spec) => spec.k === 'Languages')?.v 
         <div class="hero__side">
           <p class="hero__lede">“The problem is not the problem. The problem is your attitude about the problem.”</p>
           <div class="hero__btns">
-            <a class="btn btn--solid" href="/apps/">See the apps</a>
-            <a class="btn btn--ghost" href="/work-with-us/">Start a project</a>
+            <a class="btn btn--solid" href={withBase('/apps/')}>See the apps</a>
+            <a class="btn btn--ghost" href={withBase('/work-with-us/')}>Start a project</a>
           </div>
         </div>
       </div>
@@ -57,7 +57,7 @@ const languages = featured.data.specs.find((spec) => spec.k === 'Languages')?.v 
   <section class="wrap section" id="apps">
     <div class="section-head">
       <h2 class="display h-section" data-reveal>The apps</h2>
-      <a class="link" href="/apps/">All apps</a>
+      <a class="link" href={withBase('/apps/')}>All apps</a>
     </div>
 
     <FeaturedApp app={featured} />
@@ -65,7 +65,7 @@ const languages = featured.data.specs.find((spec) => spec.k === 'Languages')?.v 
     <div class="app-grid">
       {others.map((app, index) => <AppCard app={app} index={index % 3} />)}
 
-      <a class="yours" href="/work-with-us/" data-reveal style={`--i:${others.length % 3}`}>
+      <a class="yours" href={withBase('/work-with-us/')} data-reveal style={`--i:${others.length % 3}`}>
         <span class="yours__plus" aria-hidden="true">+</span>
         <span class="mono yours__label">Client work</span>
         <span class="yours__name">Your project</span>
@@ -84,13 +84,13 @@ const languages = featured.data.specs.find((spec) => spec.k === 'Languages')?.v 
         Client projects get the same process as our own apps: a working prototype early, then the release work most
         projects leave until last.
       </p>
-      <a class="btn btn--solid" href="/work-with-us/" data-reveal style="--i:2">Start a project</a>
+      <a class="btn btn--solid" href={withBase('/work-with-us/')} data-reveal style="--i:2">Start a project</a>
     </div>
 
     <div class="rows work__list">
       {
         SERVICES.map((service) => (
-          <a class="service" href={`/work-with-us/?type=${encodeURIComponent(service.type)}`}>
+          <a class="service" href={withBase(`/work-with-us/?type=${encodeURIComponent(service.type)}`)}>
             <span class="chev" aria-hidden="true">
               ›
             </span>
@@ -124,7 +124,7 @@ const languages = featured.data.specs.find((spec) => spec.k === 'Languages')?.v 
   <section class="wrap section">
     <div class="section-head">
       <h2 class="display h-section" data-reveal>Blog</h2>
-      <a class="link" href="/blog/">All posts</a>
+      <a class="link" href={withBase('/blog/')}>All posts</a>
     </div>
     <div class="rows">
       {posts.map((post) => <PostRow post={post} />)}

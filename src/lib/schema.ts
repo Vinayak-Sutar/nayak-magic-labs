@@ -1,11 +1,14 @@
 /** JSON-LD structured data, one builder per page type (see Site Plan, section 3). */
 import { SITE } from '../site.config';
+import { withBase } from './base';
 import { appUrl, postUrl, type App, type Post } from './content';
 
 type Json = Record<string, unknown>;
 
 const CONTEXT = 'https://schema.org';
-const abs = (path: string) => new URL(path, SITE.url).href;
+// withBase is idempotent, so this works whether `path` is bare ('/logo.png') or
+// already prefixed (appUrl(id)).
+const abs = (path: string) => new URL(withBase(path), SITE.url).href;
 const ORG = abs('/#organization');
 
 export function organization(): Json {

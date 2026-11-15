@@ -5,7 +5,7 @@ import AppIcon from '../../../components/AppIcon.astro';
 import Ledger from '../../../components/Ledger.astro';
 import PostRow from '../../../components/PostRow.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { appPrivacyUrl, appUrl, getApps, getPosts, tracked, type App } from '../../../lib/content';
+import { appPrivacyUrl, appUrl, getApps, getPosts, tracked, withBase, type App } from '../../../lib/content';
 import { breadcrumbs, faqPage, softwareApplication } from '../../../lib/schema';
 import { SITE } from '../../../site.config';
 
@@ -46,7 +46,7 @@ const number = (index: number) => String(index + 1).padStart(2, '0');
   <article>
     <header class="wrap hero">
       <nav class="crumbs mono" aria-label="Breadcrumb">
-        <a href="/apps/">Apps</a>
+        <a href={withBase('/apps/')}>Apps</a>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{data.name}</span>
       </nav>
@@ -205,7 +205,7 @@ const number = (index: number) => String(index + 1).padStart(2, '0');
         <section class="wrap section">
           <div class="section-head">
             <h2 class="display h-section">From the blog</h2>
-            <a class="link" href="/blog/">
+            <a class="link" href={withBase('/blog/')}>
               All posts
             </a>
           </div>

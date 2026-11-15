@@ -1,6 +1,6 @@
 ---
 /** The blog index: heading, topic chips, a quick filter box and the list of posts. */
-import { getApps, tagUrl, type Post } from '../lib/content';
+import { getApps, tagUrl, withBase, type Post } from '../lib/content';
 import PostRow from './PostRow.astro';
 
 interface Props {
@@ -20,7 +20,7 @@ const appName = (post: Post) => apps.find((app) => app.id === post.data.app?.id)
   {
     active ? (
       <Fragment>
-        <a class="mono muted crumb" href="/blog/">
+        <a class="mono muted crumb" href={withBase('/blog/')}>
           ← Blog
         </a>
         <h1 class="display h-page">{active}</h1>
@@ -38,7 +38,7 @@ const appName = (post: Post) => apps.find((app) => app.id === post.data.app?.id)
 
   <div class="bar">
     <nav class="tags" aria-label="Topics">
-      <a class="chip" href="/blog/" aria-current={active ? undefined : 'true'}>All</a>
+      <a class="chip" href={withBase('/blog/')} aria-current={active ? undefined : 'true'}>All</a>
       {
         tags.map((tag) => (
           <a class="chip" href={tagUrl(tag)} aria-current={tag === active ? 'true' : undefined}>

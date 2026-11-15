@@ -1,19 +1,19 @@
 /** The index the live prompt searches: every page, app and post. */
 import type { APIRoute } from 'astro';
-import { appUrl, getApps, getPosts, postUrl } from '../lib/content';
+import { appUrl, getApps, getPosts, postUrl, withBase } from '../lib/content';
 import { SITE } from '../site.config';
 
 export const GET: APIRoute = async () => {
   const [apps, posts] = await Promise.all([getApps(), getPosts()]);
 
   const items = [
-    { label: 'Home', kind: 'Page', href: '/', keys: 'start nml index' },
-    { label: 'Apps', kind: 'Page', href: '/apps/', keys: 'software products extensions catalogue all' },
-    { label: 'Blog', kind: 'Page', href: '/blog/', keys: 'posts writing articles journal notes' },
-    { label: 'About', kind: 'Page', href: '/about/', keys: 'studio who mark rules toolbox' },
-    { label: 'Work with us', kind: 'Page', href: '/work-with-us/', keys: 'hire contact project quote freelance job contract' },
-    { label: 'Privacy', kind: 'Page', href: '/legal/privacy/', keys: 'legal policy data' },
-    { label: 'Terms', kind: 'Page', href: '/legal/terms/', keys: 'legal license' },
+    { label: 'Home', kind: 'Page', href: withBase('/'), keys: 'start nml index' },
+    { label: 'Apps', kind: 'Page', href: withBase('/apps/'), keys: 'software products extensions catalogue all' },
+    { label: 'Blog', kind: 'Page', href: withBase('/blog/'), keys: 'posts writing articles journal notes' },
+    { label: 'About', kind: 'Page', href: withBase('/about/'), keys: 'studio who mark rules toolbox' },
+    { label: 'Work with us', kind: 'Page', href: withBase('/work-with-us/'), keys: 'hire contact project quote freelance job contract' },
+    { label: 'Privacy', kind: 'Page', href: withBase('/legal/privacy/'), keys: 'legal policy data' },
+    { label: 'Terms', kind: 'Page', href: withBase('/legal/terms/'), keys: 'legal license' },
     ...apps.map((app) => ({
       label: app.data.name,
       kind: 'App',

@@ -4,7 +4,7 @@
  * Store listings link to these pages.
  */
 import LegalLayout from '../../../layouts/LegalLayout.astro';
-import { appUrl, getApps, type App } from '../../../lib/content';
+import { appUrl, getApps, withBase, type App } from '../../../lib/content';
 import { SITE } from '../../../site.config';
 
 export async function getStaticPaths() {
@@ -56,7 +56,7 @@ if (data.platform === 'chrome') {
   </section>
   <section>
     <p>
-      <a href={appUrl(app.id)}>About {data.name}</a> · <a href="/legal/privacy/">Privacy overview for all apps</a>
+      <a href={appUrl(app.id)}>About {data.name}</a> · <a href={withBase('/legal/privacy/')}>Privacy overview for all apps</a>
     </p>
   </section>
 </LegalLayout>

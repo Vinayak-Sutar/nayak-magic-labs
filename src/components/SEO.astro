@@ -4,6 +4,7 @@
  * canonical URL, Open Graph / Twitter tags and JSON-LD structured data.
  */
 import { SITE } from '../site.config';
+import { withBase } from '../lib/base';
 
 interface Props {
   /** Page title without the site name. Leave out on the home page. */
@@ -34,7 +35,7 @@ const {
 
 const fullTitle = exactTitle ?? (title ? `${title} — ${SITE.name}` : SITE.title);
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const imageUrl = new URL(image, Astro.site).href;
+const imageUrl = new URL(withBase(image), Astro.site).href;
 const blocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 // "<" is escaped so content can never close the script tag early.
 const serialize = (data: unknown) => JSON.stringify(data).replace(/</g, '\\u003c');

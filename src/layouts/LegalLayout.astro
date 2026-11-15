@@ -1,6 +1,6 @@
 ---
 /** Shared frame for the privacy overview, each app's privacy policy and the terms. */
-import { appPrivacyUrl, formatDate, getApps } from '../lib/content';
+import { appPrivacyUrl, formatDate, getApps, withBase } from '../lib/content';
 import { SITE } from '../site.config';
 import BaseLayout from './BaseLayout.astro';
 
@@ -15,9 +15,9 @@ const path = Astro.url.pathname;
 const updated = formatDate(new Date(SITE.legalUpdated));
 
 const nav = [
-  { label: 'Privacy overview', href: '/legal/privacy/' },
+  { label: 'Privacy overview', href: withBase('/legal/privacy/') },
   ...apps.map((app) => ({ label: app.data.name, href: appPrivacyUrl(app.id) })),
-  { label: 'Terms of use', href: '/legal/terms/' },
+  { label: 'Terms of use', href: withBase('/legal/terms/') },
 ];
 ---
 

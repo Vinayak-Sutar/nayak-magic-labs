@@ -4,6 +4,7 @@
  *  - everywhere else (or with / or Ctrl/⌘K) a small palette opens.
  * Both share one search over apps, posts, pages and a few commands.
  */
+import { withBase } from '../lib/base';
 import { currentTheme, setTheme, toggleTheme } from './theme';
 
 type Kind = 'Page' | 'App' | 'Post' | 'Command';
@@ -49,13 +50,13 @@ function commands(): Item[] {
         return `Copied ${site.email}`;
       },
     },
-    { label: 'rss', kind: 'Command', keys: 'feed subscribe', href: '/rss.xml', note: () => 'Open the feed' },
+    { label: 'rss', kind: 'Command', keys: 'feed subscribe', href: withBase('/rss.xml'), note: () => 'Open the feed' },
     { label: 'help', kind: 'Command', keys: 'commands ?', note: () => 'List commands' },
   ];
 }
 
 function loadIndex(): Promise<Item[]> {
-  indexPromise ??= fetch('/search.json')
+  indexPromise ??= fetch(withBase('/search.json'))
     .then((response) => response.json())
     .then((data: { items: Item[]; email: string; github: string }) => {
       site = { email: data.email, github: data.github };

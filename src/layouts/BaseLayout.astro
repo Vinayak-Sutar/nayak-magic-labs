@@ -10,6 +10,7 @@ import bodyFont from '@fontsource-variable/instrument-sans/files/instrument-sans
 import monoFont from '@fontsource-variable/martian-mono/files/martian-mono-latin-wght-normal.woff2?url';
 
 import type { ComponentProps } from 'astro/types';
+import { withBase } from '../lib/base';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import Prompt from '../components/Prompt.astro';
@@ -48,10 +49,10 @@ const { footerCta = true, ...seo } = Astro.props;
     <SEO {...seo} />
 
     <meta name="theme-color" content="#f2f2ee" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} blog`} href="/rss.xml" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} blog`} href={withBase('/rss.xml')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <link rel="preload" as="font" type="font/woff2" href={displayFont} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={bodyFont} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={monoFont} crossorigin />

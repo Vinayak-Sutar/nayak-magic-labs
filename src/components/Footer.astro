@@ -1,7 +1,7 @@
 ---
 import Mark from './Mark.astro';
 import { NAV, SITE } from '../site.config';
-import { appUrl, getApps } from '../lib/content';
+import { appUrl, getApps, withBase } from '../lib/content';
 
 interface Props {
   /** The large "Have a project in mind?" block. Off on the enquiry page itself. */
@@ -21,7 +21,7 @@ const year = new Date().getFullYear();
           <h2 class="display footer__title">
             Have a project in mind?<span class="cursor" aria-hidden="true" />
           </h2>
-          <a class="btn btn--solid" href="/work-with-us/">
+          <a class="btn btn--solid" href={withBase('/work-with-us/')}>
             Start a project
           </a>
         </div>
@@ -48,12 +48,12 @@ const year = new Date().getFullYear();
           {
             NAV.map((item) => (
               <li>
-                <a href={item.href}>{item.label}</a>
+                <a href={withBase(item.href)}>{item.label}</a>
               </li>
             ))
           }
-          <li><a href="/legal/privacy/">Privacy</a></li>
-          <li><a href="/legal/terms/">Terms</a></li>
+          <li><a href={withBase('/legal/privacy/')}>Privacy</a></li>
+          <li><a href={withBase('/legal/terms/')}>Terms</a></li>
         </ul>
       </div>
 
@@ -62,7 +62,7 @@ const year = new Date().getFullYear();
         <ul role="list">
           <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
           <li><a href={SITE.github} rel="noopener">GitHub</a></li>
-          <li><a href="/rss.xml">RSS</a></li>
+          <li><a href={withBase('/rss.xml')}>RSS</a></li>
         </ul>
       </div>
     </div>

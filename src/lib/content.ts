@@ -1,4 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { withBase } from './base';
+
+export { withBase } from './base';
 
 export type App = CollectionEntry<'apps'>;
 export type Post = CollectionEntry<'blog'>;
@@ -22,10 +25,10 @@ export async function getPosts(): Promise<Post[]> {
   return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 }
 
-export const appUrl = (id: string) => `/apps/${id}/`;
-export const appPrivacyUrl = (id: string) => `/apps/${id}/privacy/`;
-export const postUrl = (id: string) => `/blog/${id}/`;
-export const tagUrl = (tag: string) => `/blog/tag/${slugify(tag)}/`;
+export const appUrl = (id: string) => withBase(`/apps/${id}/`);
+export const appPrivacyUrl = (id: string) => withBase(`/apps/${id}/privacy/`);
+export const postUrl = (id: string) => withBase(`/blog/${id}/`);
+export const tagUrl = (tag: string) => withBase(`/blog/tag/${slugify(tag)}/`);
 
 export function slugify(text: string): string {
   return text

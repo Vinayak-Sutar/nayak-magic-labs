@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/base';
 ---
 
 <BaseLayout title="Page not found" description="This page does not exist." noindex footerCta={false}>
@@ -13,9 +14,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       these.
     </p>
     <div class="nf__links">
-      <a class="btn btn--solid" href="/">Home</a>
-      <a class="btn btn--ghost" href="/apps/">Apps</a>
-      <a class="btn btn--ghost" href="/blog/">Blog</a>
+      <a class="btn btn--solid" href={withBase('/')}>Home</a>
+      <a class="btn btn--ghost" href={withBase('/apps/')}>Apps</a>
+      <a class="btn btn--ghost" href={withBase('/blog/')}>Blog</a>
     </div>
   </section>
 </BaseLayout>
